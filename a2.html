@@ -1,99 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Assignment 1: Blink</title>
-  <link href="style.css" rel="stylesheet" />
-</head>
-<body>
-  <h1>Siheng Li — Assignment 1: Blink</h1>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
 
-  <div class="header">
-    <h2>Calculation &amp; Schematic (what to wire)</h2>
+    <title>Example Student's HCDE 439 Physical Computing Page!</title>
 
-    <p>
-      <strong>Pin 映射：</strong> D8 = <em>Red</em>，D9 = <em>Blue</em>，D10 = <em>Yellow</em><br/>
-      <strong>接法：</strong> 每路 <code>数字口 → 电阻 → LED 阳极(+)</code>；LED 阴极(–) → GND（共地）<br/>
-      <strong>电阻选择：</strong> Red = <b>330 Ω</b>，Blue = <b>220 Ω</b>，Yellow = <b>330 Ω</b>（约 8–10 mA/LED，低于 20 mA/脚）
-    </p>
-
-    <p>
-      <strong>计算（5 V 供电，目标 10 mA）：</strong><br/>
-      使用欧姆定律：<code>R = (V<sub>ARD</sub> − V<sub>F</sub>) / I</code>，其中 <code>V<sub>ARD</sub>=5 V</code><br/>
-      Red（V<sub>F</sub>≈1.8 V）：<code>R = (5 − 1.8)/0.01 ≈ 320 Ω → 330 Ω</code><br/>
-      Blue（V<sub>F</sub>≈3.2 V）：<code>R = (5 − 3.2)/0.01 ≈ 180 Ω → 220 Ω</code><br/>
-      Yellow（V<sub>F</sub>≈2.0 V）：<code>R = (5 − 2.0)/0.01 ≈ 300 Ω → 330 Ω</code>
-    </p>
-
-    <figure>
-      <img src="led_voltage_vs_time_RBY.png" alt="LED Voltage vs Time graph: D8 Red, D9 Blue, D10 Yellow" style="max-width:900px;width:100%;height:auto;" />
-      <figcaption>Q1：X 轴=时间 (s)，Y 轴=LED 两端电压 (V)。Red 周期 0.8 s，Blue 周期 1.0 s，Yellow 周期 1.6 s，均 50% 占空比。</figcaption>
-    </figure>
-  </div>
-
-  <div class="grid">
-    <div class="assignment">
-      <a href="a1.html">
-        <h2>Schematic</h2>
-        <img src="schematic.jpg" alt="Schematic image" />
-      </a>
-      <p>每路都有独立限流电阻，避免单脚电流超过 ~10 mA；芯片总电流建议 ≤ 200 mA。</p>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <h1>Example Student's Assignment 2!</h1>
+    <div class="header">
+      <img src="red-panda.jpg" />
+      <p>Here is all the documentation for assignment 2!</p>
     </div>
-
-    <div class="assignment">
-      <a href="a2.html">
-        <h2>Circuit (breadboard)</h2>
-        <img src="circuit.jpg" alt="Breadboard circuit photo" />
-      </a>
-      <p>UNO 5V → 红色电源轨；GND → 蓝色电源轨；LED 阴极回蓝轨。</p>
-    </div>
-
-    <div class="assignment">
-      <a href="circuit's_operation.html">
-        <h2>Circuit Operation (GIF)</h2>
-        <img src="circuit's_operation.gif" alt="Animated GIF of LEDs blinking" />
-      </a>
-      <p>三路独立闪烁（非阻塞 <code>millis()</code> 实现）。</p>
-    </div>
-
-    <div class="assignment">
-      <a href="a2.html">
-        <h2>Assignment 2: Fade</h2>
-        <img src="sihengli.jpg" alt="Photo for Assignment 2" />
-      </a>
-      <p>占位说明。</p>
-    </div>
-  </div>
-
-  <hr/>
-
-  <section>
-    <h2>Additional Questions</h2>
-
-    <h3>Q1. Draw a graph…</h3>
-    <p>见上图（Red/Blue/Yellow 各一条曲线）。</p>
-
-    <h3>Q2. How many LEDs could you blink independently? How much current?</h3>
-    <p>
-      避开 D0/D1 后可独立控制约 <b>18 颗</b>（D2–D13 + A0–A5）。按每颗 8–10 mA 估算，总电流约 <b>144–180 mA</b>，
-      建议控制在 ≤150 mA 以留足余量（ATmega328P 每脚 ≤20 mA、芯片总和建议 ≤200 mA）。
-    </p>
-
-    <h3>Q3. Only one on at once?</h3>
-    <p>
-      采用 <em>charlieplexing</em>，<code>N</code> 个引脚可驱动 <code>N × (N − 1)</code> 颗（单次只亮一颗）。以 18 个引脚计可达 <b>306 颗</b>。
-      若只是一脚一灯、仍只亮一颗，则仍约 <b>18 颗</b>。
-    </p>
-
-    <h3>Q4. How fast until you can’t tell they are blinking?</h3>
-    <p>人眼闪烁融合阈值约 <b>50–60 Hz</b>（20–16.7 ms/周期）。想更平滑，设置到 <b>≥100 Hz</b>。</p>
-
-    <h3>Q5. AI usage &amp; reflection</h3>
-    <p>
-      使用了 AI 来核对电阻与电流计算、生成非阻塞的 <code>millis()</code> 多路闪烁代码、以及生成波形图与本页结构。
-      我在 Tinkercad/实板验证了接线与电流，确保单脚与总电流在安全范围内。
-    </p>
-  </section>
-</body>
+  </body>
 </html>
