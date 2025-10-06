@@ -14,8 +14,21 @@
     <div class="header">
       <p>
         Calculation
+        Schematic (what to wire)
+        Pins 8, 9, 10 → resistor → LED anode (+)
+        LED cathodes (–) → GND
+        Suggested colors: D8=Red, D9=Green, D10=Yellow.
+        Resistors: Red=330 Ω, Blue=330 Ω, Yellow=220 Ω (keeps current ≈8–10 mA per LED, well under 20 mA/pin).
+        R = (V(ARD)-V(F))/I, with V(ARD) = 5v
+        Red (≈1.8 V) at 10mA -> R = (5-1.8)/0.01 ≈ 320Ω => 330Ω
+        Blue (≈2.1V) at 10mA -> R = (5-2.1)/0.01 ≈ 290Ω => 330Ω
+        Yellow (≈3.2V) at 10mA -> R = (5-3.2)/0.01 ≈ 180Ω => 220Ω
+
+        Additional questions:
+        
         
       </p>
+      <img src="graph_time:V.jpg" />
     </div>
 
     <div class="grid">
