@@ -22,15 +22,15 @@
 
       <p>
         <strong>Wiring:</strong> each channel is <code>digital pin → resistor → LED anode (+)</code>; the LED cathode (–) goes to GND (shared ground rail).
-        <br /><strong>Resistors (for ~8–10 mA per LED):</strong> Red = <b>330 Ω</b>, Blue = <b>220 Ω</b>, Yellow = <b>330 Ω</b>.
+        <br /><strong>Resistors (for ~8–10 mA per LED):</strong> Red = <b>330 Ω</b>, Blue = <b>330 Ω</b>, Yellow = <b>220 Ω</b>.
       </p>
 
       <p>
         <strong>Math (5 V board, target 10 mA):</strong>
         Use <code>R = (V<sub>ARD</sub> − V<sub>F</sub>) / I</code>, with <code>V<sub>ARD</sub>=5 V</code>.
         <br />Red (V<sub>F</sub>≈1.8 V): <code>(5−1.8)/0.01 ≈ 320 Ω → 330 Ω</code>
-        <br />Blue (V<sub>F</sub>≈3.2 V): <code>(5−3.2)/0.01 ≈ 180 Ω → 220 Ω</code>
-        <br />Yellow (V<sub>F</sub>≈2.0 V): <code>(5−2.0)/0.01 ≈ 300 Ω → 330 Ω</code>
+        <br />Blue (V<sub>F</sub>≈2.0 V): <code>(5−2.0)/0.01 ≈ 300 Ω → 330 Ω</code>
+        <br />Yellow (V<sub>F</sub>≈3.2 V): <code>(5−3.2)/0.01 ≈ 180 Ω → 220 Ω</code>
       </p>
 
     </div>
@@ -62,7 +62,7 @@
 
       <div class="Additional questions 1">
         <a href="a1.html">
-          <h2>Assignment 2: Fade!</h2>
+          <h2>graph!</h2>
           <img src="graph_time:V.jpg" />
         </a>
         <p>X axis is time and the Y axis is voltage</p>
@@ -71,6 +71,58 @@
 
     
     <hr />
+
+    <section id="firmware">
+      <h2>Firmware (.ino)</h2>
+      <pre><code class="language-cpp">
+      // C++ code
+      //
+      int redPin = 8;
+      int bluePin = 9;
+      int yellowPin = 10;
+
+      void setup() {
+        pinMode(redPin, OUTPUT);
+        pinMode(bluePin, OUTPUT);
+        pinMode(yellowPin, OUTPUT);
+      }
+
+      void loop() {
+        digitalWrite(yellowPin, HIGH); // turn on Yellow
+        delay(100);
+        digitalWrite(yellowPin, LOW);  // turn off Yellow
+        delay(100);
+
+        digitalWrite(yellowPin, HIGH); // turn on Yellow
+        delay(100);
+        digitalWrite(yellowPin, LOW);  // turn off Yellow
+        delay(300);
+
+        digitalWrite(redPin, HIGH);   // turn on Red
+        delay(100);
+        digitalWrite(redPin, LOW);    // turn off Red
+        delay(100);
+
+        digitalWrite(redPin, HIGH);   // turn on Red
+        delay(100);
+        digitalWrite(redPin, LOW);    // turn off Red
+        delay(300);
+
+        digitalWrite(bluePin, HIGH);  // turn on Blue
+        delay(100);
+        digitalWrite(bluePin, LOW);   // turn off Blue
+        delay(100);
+
+        digitalWrite(bluePin, HIGH);  // turn on Blue
+        delay(100);
+        digitalWrite(bluePin, LOW);   // turn off Blue
+        delay(300);
+
+      }
+      </code></pre>
+    </section>
+
+
 
     <section style="max-width:900px;margin:0 auto">
       <h2>Additional Questions</h2>
@@ -83,13 +135,6 @@
         On an Arduino UNO you can practically control about <b>18 LEDs</b> independently (avoid D0/D1 used by Serial).  
         At ~8–10 mA per LED that’s roughly <b>144–180 mA</b> total.  
         Stay comfortably below the ATmega328P limits (≈20 mA per pin and ≲200 mA total); aiming ≤150 mA total is a good safety margin.
-      </p>
-
-      <h3>Q3. If only one is ON at any time?</h3>
-      <p>
-        With <em>charlieplexing</em>, <code>N</code> pins can address <code>N × (N − 1)</code> LEDs (one lit at a time).  
-        Using ~18 usable pins → up to <b>306 LEDs</b> (with proper wiring and current limiting).  
-        If you wire one pin per LED without charlieplexing, it remains ≈ <b>18</b>.
       </p>
 
       <h3>Q4. How fast until you can’t tell they’re blinking?</h3>
