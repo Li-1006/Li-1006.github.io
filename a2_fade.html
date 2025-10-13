@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <title>Assignment 2: Fade</title>
+
+    <link href="style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <h1>Siheng li's Assignmnet 2: Fade Page!</h1>
+
+    <div class="header">
+      <h2>Calculation of resistance</h2>
+
+      <p>
+        Use Ohm’s law for a series resistor:
+      <br>
+      <strong>R = (V<sub>S</sub> − V<sub>F</sub>) / I</strong>
+    </p>
+    <ul>
+      <li><strong>V<sub>S</sub></strong>: supply voltage (Arduino digital pin ≈ <strong>5&nbsp;V</strong>)</li>
+      <li><strong>V<sub>F</sub></strong>: LED forward voltage (depends on color/device)</li>
+      <li><strong>I</strong>: desired LED current (design target <strong>20&nbsp;mA</strong> = 0.02&nbsp;A)</li>
+    </ul>
+
+    <ul>
+      <li>Red: <strong>≈ 2.0&nbsp;V</strong></li>
+      <li>Yellow: <strong>≈ 2.2&nbsp;V</strong></li>
+      <li>Blue: <strong>≈ 3.0&nbsp;V</strong></li>
+    </ul>
+
+    <table style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th style="border:1px solid #ccc; padding:6px;">LED Color</th>
+          <th style="border:1px solid #ccc; padding:6px;">Given</th>
+          <th style="border:1px solid #ccc; padding:6px;">Computation</th>
+          <th style="border:1px solid #ccc; padding:6px;">Result (Pick Standard Value)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border:1px solid #ccc; padding:6px;">Red</td>
+          <td style="border:1px solid #ccc; padding:6px;">V<sub>S</sub>=5&nbsp;V, V<sub>F</sub>≈2.0&nbsp;V, I=0.02&nbsp;A</td>
+          <td style="border:1px solid #ccc; padding:6px;">R = (5 − 2.0) / 0.02 = 150&nbsp;Ω</td>
+          <td style="border:1px solid #ccc; padding:6px;"><strong>220&nbsp;Ω</strong></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #ccc; padding:6px;">Yellow</td>
+          <td style="border:1px solid #ccc; padding:6px;">V<sub>S</sub>=5&nbsp;V, V<sub>F</sub>≈2.2&nbsp;V, I=0.02&nbsp;A</td>
+          <td style="border:1px solid #ccc; padding:6px;">R = (5 − 2.2) / 0.02 = 140&nbsp;Ω</td>
+          <td style="border:1px solid #ccc; padding:6px;"><strong>220&nbsp;Ω</strong></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #ccc; padding:6px;">Blue</td>
+          <td style="border:1px solid #ccc; padding:6px;">V<sub>S</sub>=5&nbsp;V, V<sub>F</sub>≈3.0&nbsp;V, I=0.02&nbsp;A</td>
+          <td style="border:1px solid #ccc; padding:6px;">R = (5 − 3.0) / 0.02 = 100&nbsp;Ω</td>
+          <td style="border:1px solid #ccc; padding:6px;"><strong>100&nbsp;Ω</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+    <div class="grid">
+      <div class="assignment">
+        <a href="Schematic_a2.jpg">
+          <h2> schematic </h2>
+          <img src="Schematic_a2.jpg" />
+        </a>
+        <p>Schematic!</p>
+      </div>
+
+      <div class="assignment">
+        <a href="Circuit_a2.jpg">
+          <h2> circuit </h2>
+          <img src="Circuit_a2.jpg" />
+        </a>
+        <p>circuit!</p>
+      </div>
+
+      <div class="assignment">
+        <a href="circuit_operation_a2.html">
+          <h2>circuit's operation</h2>
+          <img src="Circuit_operation_a2.gif" />
+        </a>
+        <p>circuit's operation!</p>
+      </div>
+
+      <div class="Additional questions 1">
+        <a href="a2_fade.html">
+          <h2>graph!</h2>
+          <img src="a2_graph.jpg" />
+        </a>
+        <p>X axis is time and the Y axis is voltage</p>
+      </div>
+    </div>
+
+    
+    <hr />
+
+    <section id="firmware">
+      <h2>Firmware (.ino)</h2>
+      <pre><code class="language-cpp">
+      // ===== Configuration =====
+      int Red = 9;   // Red LED
+      int Yellow = 10;   // Yellow LED
+      int Blue = 6;   // Blue LED
+      int BTN   = 2;   // Button D2
+
+      int STEP = 5;          // fade step size
+      int STEP_DELAY = 20;  // delay per step in ms
+
+      volatile bool running = true;        // true=start, false=stop
+
+      // Debounce variables
+      unsigned long lastChange = 0;
+      const unsigned long debounceMs = 25;
+      int stableBtn = HIGH;                // INPUT_PULLUP: HIGH=Not pressed, LOW=Pressed
+
+      // Turn off lights at once
+      void allOff() {
+        analogWrite(Red, 0);
+        analogWrite(Yellow, 0);
+        analogWrite(Blue, 0);
+      }
+
+      // Read button and debounce, detect "press" to switch play/pause
+      void pollButtonToggle() {
+        int readNow = digitalRead(BTN);
+        if (readNow != stableBtn) {
+          lastChange = millis();           // Record change time
+        }
+        if (millis() - lastChange > debounceMs) {
+          // Confirm after stabilization
+          if (stableBtn == HIGH && readNow == LOW) {
+            // Detect a press -> switch play/pause
+            running = !running;
+          }
+          stableBtn = readNow;
+        }
+      }
+
+      // Stay at the current brightness when paused and continue polling the button until playback resumes
+      void waitWhilePaused(uint8_t pin, int value) {
+        while (!running) {
+          pollButtonToggle();              // Wait until you press Resume again
+          analogWrite(pin, value);
+          delay(5);
+        }
+      }
+
+      // Perform a fade-in->fade-out on a certain LED, and pause/resume it at any time
+      void fadeOne(uint8_t pin) {
+        allOff();
+
+        // Fadein 0->255
+        for (int v = 0; v <= 255; v += STEP) {
+          pollButtonToggle();
+          if (!running) waitWhilePaused(pin, v);
+          analogWrite(pin, v);
+          delay(STEP_DELAY);
+        }
+        // Fadeout 255->0
+        for (int v = 255; v >= 0; v -= STEP) {
+          pollButtonToggle();
+          if (!running) waitWhilePaused(pin, v);
+          analogWrite(pin, v);
+          delay(STEP_DELAY);
+        }
+        // Guaranteed to be destroyed at the end
+        digitalWrite(pin, LOW);
+      }
+
+      void setup() {
+        pinMode(Red, OUTPUT);
+        pinMode(Yellow, OUTPUT);
+        pinMode(Blue, OUTPUT);
+        pinMode(BTN, INPUT_PULLUP);        // Internal pull-up, pressed = LOW
+        allOff();
+      }
+
+      void loop() {
+        fadeOne(Red);     // Red first
+        fadeOne(Yellow);    // then Yellow
+        fadeOne(Blue);    // then Yellow
+        // Repeated cycle
+      }      
+    </code></pre>
+    </section>
+
+    <hr />
+
+
+
+    <section style="max-width:900px;margin:0 auto">
+      <h2>Additional Questions</h2>
+
+      <h3>Q1. Draw a graph…</h3>
+      <p>
+        On an Uno PWM pin (~490&nbsp;Hz), <code>analogWrite(64)</code> &approx; 25%,
+        <code>analogWrite(128)</code> &approx; 50%, and <code>analogWrite(255)</code> = 100%.
+        PWM keeps the instantaneous level at 0 or 5&nbsp;V; brightness tracks the <em>duty cycle</em>.
+        The dashed lines mark the average voltages (~1.25&nbsp;V, ~2.51&nbsp;V, and 5&nbsp;V).
+      </p>
+
+      <h3>Q2. Battery life estimate (LEDs only）</h3>
+      <p>
+        Per the assignment, assume only LEDs draw current. My resistors are
+        <strong>Red 220&nbsp;Ω</strong>, <strong>Yellow 220&nbsp;Ω</strong>, and <strong>Blue 100&nbsp;Ω</strong>.
+        Using a 5&nbsp;V supply and typical forward voltages (Red ≈ 2.0&nbsp;V, Yellow ≈ 2.2&nbsp;V, Blue ≈ 3.0&nbsp;V):
+      </p>
+      <ul>
+        <li>Red @ 255: <code>I = (5−2.0)/220 ≈ 13.6&nbsp;mA</code></li>
+        <li>Yellow @ 255: <code>I = (5−2.2)/220 ≈ 12.7&nbsp;mA</code></li>
+        <li>Blue @ 255: <code>I = (5−3.0)/100 ≈ 20.0&nbsp;mA</code></li>
+      </ul>
+      <p>
+        My firmware fades one LED at a time; each LED averages ~50% duty while active and each color runs ~⅓ of the time.
+        The time-averaged LED current is:
+        <code>I<sub>avg</sub> ≈ (13.6 + 12.7 + 20.0) / 6 ≈ <strong>7.7&nbsp;mA</strong></code>.
+      </p>
+      <p>
+        With a <strong>1200&nbsp;mAh</strong> battery:
+        <code>t ≈ 1200&nbsp;mAh / 7.7&nbsp;mA ≈ <strong>155&nbsp;hours (~6.5&nbsp;days)</strong></code>.
+      </p>
+      <details>
+        <summary>Note about a true 20&nbsp;mA design</summary>
+        If each LED were designed for 20&nbsp;mA (R/Y ≈ 150&nbsp;Ω, B ≈ 100&nbsp;Ω),
+        then <code>I<sub>avg</sub> = (20+20+20)/6 = 10&nbsp;mA</code> →
+        runtime ≈ <strong>120&nbsp;hours (~5&nbsp;days)</strong>.
+      </details>
+
+      <h3>3) Measured LED forward voltage</h3>
+      <ol>
+        <li>Set one LED fully on (e.g., <code>analogWrite(pin, 255)</code>).</li>
+        <li>Measure across the LED (anode ↔ cathode) with a DMM.</li>
+        <li>Record the value and compare to the typical forward voltage for that color.</li>
+      </ol>
+      <p>
+        <strong>Typical V<sub>F</sub> ranges:</strong>
+        Red ≈ 1.8–2.2&nbsp;V, Yellow ≈ 2.0–2.2&nbsp;V, Blue ≈ 2.8–3.3&nbsp;V.
+      </p>
+      <p>
+        <em>Example write-up:</em>
+        “Measured V<sub>F</sub> for the Blue LED at 255 is <u>___.__ V</u>, close to the theoretical ~3.0&nbsp;V;
+        differences come from part variation, current level, and temperature.”
+      </p>
+
+      <h3>Q5. Did you use AI tools?</h3>
+      <p>
+        I used AI to: I verified the hardware code, identified the PWM pins (D6/D9/D10), and measured the LED 
+        forward voltage with a multimeter. Using AI sped up documentation and sanity checking; I verified the 
+        circuit and values ​​myself.
+      </p>
+    </section>
+  </body>
+</html>
