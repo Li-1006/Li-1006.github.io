@@ -9,7 +9,7 @@
     <link href="style.css" rel="stylesheet" />
   </head>
   <body>
-    <h1>Siheng li's Assignmnet 2: Fade Page!</h1>
+    <h1>Siheng li's Assignment 2: Fade Page!</h1>
 
     <div class="header">
       <h2>Calculation of resistance</h2>
@@ -83,10 +83,10 @@
 
       <div class="assignment">
         <a href="circuit_operation_a2.html">
-          <h2>circuit's operation</h2>
-          <img src="Circuit_operation_a2.gif" />
+          <h2>Circuit operation</h2>
+          <img src="circuit_operation_a2.gif" />
         </a>
-        <p>circuit's operation!</p>
+        <p>Circuit operation!</p>
       </div>
 
       <div class="Additional questions 1">
@@ -105,20 +105,34 @@
       <h2>Firmware (.ino)</h2>
       <pre><code class="language-cpp">
       // ===== Configuration =====
-      int Red = 9;   // Red LED
-      int Yellow = 10;   // Yellow LED
-      int Blue = 6;   // Blue LED
-      int BTN   = 2;   // Button D2
+      // Red LED
+      int Red = 9;
 
-      int STEP = 5;          // fade step size
-      int STEP_DELAY = 20;  // delay per step in ms
+      // Yellow LED
+      int Yellow = 10;
+      // Blue LED
+      int Blue = 6;
 
-      volatile bool running = true;        // true=start, false=stop
+      // Button D2
+      int BTN   = 2;
+      
+      // fade step size
+      int STEP = 5;
+
+      // fade step size
+      int STEP_DELAY = 20; 
+
+      // true=start, false=stop
+      volatile bool running = true;
 
       // Debounce variables
       unsigned long lastChange = 0;
+
+      // Debounce window (ms)
       const unsigned long debounceMs = 25;
-      int stableBtn = HIGH;                // INPUT_PULLUP: HIGH=Not pressed, LOW=Pressed
+
+      // INPUT_PULLUP: HIGH=Not pressed, LOW=Pressed
+      int stableBtn = HIGH;
 
       // Turn off lights at once
       void allOff() {
@@ -185,7 +199,7 @@
       void loop() {
         fadeOne(Red);     // Red first
         fadeOne(Yellow);    // then Yellow
-        fadeOne(Blue);    // then Yellow
+        fadeOne(Blue);    // then Blue
         // Repeated cycle
       }      
     </code></pre>
@@ -249,7 +263,7 @@
         differences come from part variation, current level, and temperature.”
       </p>
 
-      <h3>Q5. Did you use AI tools?</h3>
+      <h3>Q4. Did you use AI tools?</h3>
       <p>
         I used AI to: I verified the hardware code, identified the PWM pins (D6/D9/D10), and measured the LED 
         forward voltage with a multimeter. Using AI sped up documentation and sanity checking; I verified the 
