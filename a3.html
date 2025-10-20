@@ -244,20 +244,17 @@ void loop() {
       The x-axis corresponds to time (sampling index), and the y-axis shows the measured values.
       As light intensity increases, Vmeasure (value1) rises and the PWM output (value2) changes accordingly, demonstrating the LDR’s control over the LED brightness.
     </p>
-    <img src="Plotter_a3.gif" alt="Serial Plotter" />
+    <img src="Plotter_a3.gif" alt="Serial Plotter" style="width:320px; height:auto; display:block; margin:8px auto;" />
 
+    <h3>Q3. If PWM were 10-bit and ADC were 16-bit…</h3>
+    <p><strong>Current Uno:</strong> ADC 10-bit (0..1023) → PWM 8-bit (0..255)</p>
+    <pre><code>int pwm = map(adc, 0, 1023, 0, 255);</code></pre>
 
-    <h3>Q3. How fast until you can’t tell they’re blinking?</h3>
-    <p>
-      Human flicker-fusion threshold ≈ <b>50–60 Hz</b> (period ≈ <b>20–16.7 ms</b>).  
-      For a steady look, use <b>≥100 Hz</b> (≤10 ms period).
-    </p>
+    <p><strong>Hypothetical:</strong> ADC 16-bit (0..65535) → PWM 10-bit (0..1023)</p>
 
-    <h3>Q5. Did you use AI tools?</h3>
-    <p>
-      Yes. I used AI to learn HTML embedding for code and checked current limits.  
-      I tested both simulation and physical circuit.
-    </p>
-  </section>
+    <pre><code>// New map for 16-bit ADC to 10-bit PWM
+  int pwm10 = map(adc16, 0, 65535, 0, 1023);
+
+</section>
 </body>
 </html>
