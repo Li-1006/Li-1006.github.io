@@ -1,20 +1,64 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assignment 3: Input Output</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
 
-    <title>Assignment 3: Input Output</title>
+    h1 {
+      font-size: 26px;
+    }
 
-    <link href="style.css" rel="stylesheet" />
-  </head>
-  <body>
-    <h1>Siheng li's Assignmnet 3: Input Output Page!</h1>
+    pre {
+      background: #f4f4f4;
+      padding: 8px;
+      border-radius: 4px;
+    }
 
-    <div class="header">
-      <h2>Schematic Overview</h2>
-      <h3>Sensor: LDR Voltage Divider</h3>
-  <p>Use an LDR with a 10kΩ resistor to form a voltage divider; A0 reads the midpoint voltage (brighter → higher voltage).</p>
+    ul {
+      padding-left: 20px;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .assignment {
+      text-align: center;
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 250px;
+    }
+
+    .assignment img {
+      width: 100%;
+      max-width: 250px;
+    }
+
+    hr {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Siheng Li's Assignment 3: Input / Output Page!</h1>
+
+  <h2>Schematic Overview</h2>
+  <h3>Sensor: LDR Voltage Divider</h3>
+  <p>
+    Use an LDR with a 10kΩ resistor to form a voltage divider;
+    A0 reads the midpoint voltage (brighter → higher voltage).
+  </p>
+
   <pre>
 5V ── LDR ──●── 10 kΩ ── GND
              │
@@ -29,113 +73,108 @@
   </ul>
 
   <h3>Rationale</h3>
-  <p>The 10 kΩ resistor is designed to allow the Arduino to sensitively detect light changes.
-    The 220 Ω / 100 Ω resistor is designed to protect the LED and ensure brightness matching.</p>
-</section>
+  <p>
+    The 10 kΩ resistor allows the Arduino to sensitively detect light changes.<br>
+    The 220 Ω / 100 Ω resistors protect the LEDs and ensure brightness matching.
+  </p>
 
+  <div class="grid">
+    <div class="assignment">
+      <a href="a3_schematic.html">
+        <h2>Schematic</h2>
+        <img src="schematic.jpg" alt="schematic" />
+      </a>
+      <p>schematic!</p>
     </div>
 
-    <div class="grid">
-      <div class="assignment">
-        <a href="a3_schematic.html">
-          <h2> schematic </h2>
-          <img src="schematic.jpg" />
-        </a>
-        <p>schematic!</p>
-      </div>
-
-      <div class="assignment">
-        <h2> circuit </h2>
-        <img src="A3_circuit.jpg" />
-        <p>circuit!</p>
-      </div>
-
-      <div class="assignment">
-        <h2>circuit's operation</h2>
-        <img src="A3_operation.gif" />
-        </a>
-        <p>circuit's operation!</p>
-      </div>
-
-      <div class="Serial Monitor">
-        <a href="a3_serial_monitor.html">
-          <h2>graph!</h2>
-          <img src="A3_serial_monitor_1.jpg" />
-        </a>
-        <p>please click the picture, there are three two more inside.</p>
-      </div>
+    <div class="assignment">
+      <h2>Circuit</h2>
+      <img src="A3_circuit.jpg" alt="circuit" />
+      <p>circuit!</p>
     </div>
 
-    
-    <hr />
+    <div class="assignment">
+      <h2>Circuit Operation</h2>
+      <img src="A3_operation.gif" alt="operation" />
+      <p>circuit's operation!</p>
+    </div>
 
-    <section id="firmware">
-      <h2>Firmware (.ino)</h2>
-      <pre><code class="language-cpp">
-      const int R = 9, Y = 10, B = 6;   // three LEDs (PWM)
-      const int LDR = A0;  // A0 reads the voltage divider (midpoint of LDR+10k)
+    <div class="assignment">
+      <a href="a3_serial_monitor.html">
+        <h2>Graph</h2>
+        <img src="A3_serial_monitor_1.jpg" alt="graph" />
+      </a>
+      <p>Please click the picture, there are two more inside.</p>
+    </div>
+  </div>
 
-      // initialization
-      void setup() {
-        pinMode(R, OUTPUT); pinMode(Y, OUTPUT); pinMode(B, OUTPUT);
-        Serial.begin(115200);
-        Serial.println(F("[A3] LDR→RGB demo. Divider: 10k to GND; PWM on D9/D10/D6."));
-      }
+  <hr />
 
-      void loop() {
-        int adc   = analogRead(LDR);             // 0..1023
-        int level = map(adc, 0, 1023, 0, 255);   // 0..255
+  <section id="firmware">
+    <h2>Firmware (.ino)</h2>
+    <pre><code>
+const int R = 9, Y = 10, B = 6;   // three LEDs (PWM)
+const int LDR = A0;  // A0 reads the voltage divider (midpoint of LDR+10k)
 
-        if (adc < 400) {             // darker -> reddish
-          analogWrite(R, level);    // Red changes with brightness (level)
-          analogWrite(Y, level/2);  // Yellow is half of red
-          analogWrite(B, 0);        // blue closed
+void setup() {
+  pinMode(R, OUTPUT); pinMode(Y, OUTPUT); pinMode(B, OUTPUT);
+  Serial.begin(115200);
+  Serial.println(F("[A3] LDR→RGB demo. Divider: 10k to GND; PWM on D9/D10/D6."));
+}
 
-        } else if (adc > 700) {      // bright -> bluish
-          analogWrite(R, 0);         // red closed
-          analogWrite(Y, level/2);   // Yellow is half of blue
-          analogWrite(B, level);     // Blue with brightness
+void loop() {
+  int adc = analogRead(LDR);             
+  int level = map(adc, 0, 1023, 0, 255);
 
-        } else {                     // mid -> yellowish
-          analogWrite(R, level/2);   // Red Weak
-          analogWrite(Y, level);     // Yellow is the brightest
-          analogWrite(B, level/2);   // blue weak
-        }
+  if (adc < 400) {             
+    analogWrite(R, level);    
+    analogWrite(Y, level/2);  
+    analogWrite(B, 0);        
 
-        Serial.print("ADC="); Serial.print(adc);
-        Serial.print(" PWM="); Serial.println(level);
-        delay(30);
-      }
-        </code></pre>
-      </section>
+  } else if (adc > 700) {      
+    analogWrite(R, 0);         
+    analogWrite(Y, level/2);   
+    analogWrite(B, level);     
 
-      <hr />
+  } else {                     
+    analogWrite(R, level/2);   
+    analogWrite(Y, level);     
+    analogWrite(B, level/2);   
+  }
 
+  Serial.print("ADC="); Serial.print(adc);
+  Serial.print(" PWM="); Serial.println(level);
+  delay(30);
+}
+    </code></pre>
+  </section>
 
-    <section style="max-width:900px;margin:0 auto">
-      <h2>Additional Questions</h2>
+  <hr />
 
-      <h3>Q1. Draw a graph…</h3>
-      <p>See the figure above (one trace per LED: Red, Blue, Yellow).</p>
+  <section style="max-width:900px;margin:0 auto;">
+    <h2>Additional Questions</h2>
 
-      <h3>Q2. How many LEDs could you blink independently? How much current?</h3>
-      <p>
-        On an Arduino UNO you can practically control about <b>18 LEDs</b> independently (avoid D0/D1 used by Serial).  
-        At ~8–10 mA per LED that’s roughly <b>144–180 mA</b> total.  
-        Stay comfortably below the ATmega328P limits (≈20 mA per pin and ≲200 mA total); aiming ≤150 mA total is a good safety margin.
-      </p>
+    <h3>Q1. Draw a graph…</h3>
+    <p>See the figure above (one trace per LED: Red, Blue, Yellow).</p>
 
-      <h3>Q4. How fast until you can’t tell they’re blinking?</h3>
-      <p>
-        Human flicker-fusion threshold is typically around <b>50–60 Hz</b> (period ≈ <b>20–16.7 ms</b>).  
-        For a truly steady look, use <b>≥100 Hz</b> (≤10 ms period).
-      </p>
+    <h3>Q2. How many LEDs could you blink independently? How much current?</h3>
+    <p>
+      On an Arduino UNO you can control about <b>18 LEDs</b> independently (avoid D0/D1 used by Serial).  
+      At ~8–10 mA per LED that’s roughly <b>144–180 mA</b> total.  
+      Stay below ATmega328P limits (≈20 mA per pin, ≲200 mA total); ≤150 mA is safe.
+    </p>
 
-      <h3>Q5. Did you use AI tools?</h3>
-      <p>
-        Yes. I used AI to learn how to embed code on web page. I also verified pin and total-current limits and tested the circuit 
-        in simulation and on hardware.
-      </p>
-    </section>
-  </body>
+    <h3>Q4. How fast until you can’t tell they’re blinking?</h3>
+    <p>
+      Human flicker-fusion threshold ≈ <b>50–60 Hz</b> (period ≈ <b>20–16.7 ms</b>).  
+      For a steady look, use <b>≥100 Hz</b> (≤10 ms period).
+    </p>
+
+    <h3>Q5. Did you use AI tools?</h3>
+    <p>
+      Yes. I used AI to learn HTML embedding for code and checked current limits.  
+      I tested both simulation and physical circuit.
+    </p>
+  </section>
+</body>
 </html>
