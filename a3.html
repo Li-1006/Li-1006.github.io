@@ -53,30 +53,40 @@
   <h1>Siheng Li's Assignment 3: Input / Output Page!</h1>
 
   <h2>Schematic Overview</h2>
-  <h3>Sensor: LDR Voltage Divider</h3>
-  <p>
-    Use an LDR with a 10kΩ resistor to form a voltage divider;
-    A0 reads the midpoint voltage (brighter → higher voltage).
-  </p>
 
-  <pre>
+  <table>
+    <tr>
+      <th>Sensor:<br>LDR Voltage Divider</th>
+      <td>
+        Use an LDR with a 10 kΩ resistor to form a voltage divider;
+        A0 reads the midpoint voltage (brighter → higher voltage).
+        <pre>
 5V ── LDR ──●── 10 kΩ ── GND
              │
             A0
-  </pre>
+        </pre>
+      </td>
+    </tr>
 
-  <h3>Output Device: Three LEDs (Red, Yellow, Blue)</h3>
-  <ul>
-    <li>D9 → Red → 220Ω → GND</li>
-    <li>D10 → Yellow → 220Ω → GND</li>
-    <li>D6 → Blue → 100Ω → GND</li>
-  </ul>
+    <tr>
+      <th>Output Device:<br>Three LEDs (Red, Yellow, Blue)</th>
+      <td>
+        <ul>
+          <li>D9 → Red → 220 Ω → GND</li>
+          <li>D10 → Yellow → 220 Ω → GND</li>
+          <li>D6 → Blue → 100 Ω → GND</li>
+        </ul>
+      </td>
+    </tr>
 
-  <h3>Rationale</h3>
-  <p>
-    The 10 kΩ resistor allows the Arduino to sensitively detect light changes.<br>
-    The 220 Ω / 100 Ω resistors protect the LEDs and ensure brightness matching.
-  </p>
+    <tr>
+      <th>Rationale</th>
+      <td>
+        The 10 kΩ resistor allows the Arduino to sensitively detect light changes.<br>
+        The 220 Ω / 100 Ω resistors protect the LEDs and ensure brightness matching.
+      </td>
+    </tr>
+  </table>
 
   <div class="grid">
     <div class="assignment">
