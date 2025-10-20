@@ -121,11 +121,12 @@
   <hr />
 
   <section id="firmware">
-    <h2>Firmware (.ino)</h2>
+    <h2>Firmware</h2>
     <pre><code>
 const int R = 9, Y = 10, B = 6;   // three LEDs (PWM)
 const int LDR = A0;  // A0 reads the voltage divider (midpoint of LDR+10k)
 
+// initialization
 void setup() {
   pinMode(R, OUTPUT); pinMode(Y, OUTPUT); pinMode(B, OUTPUT);
   Serial.begin(115200);
@@ -133,28 +134,32 @@ void setup() {
 }
 
 void loop() {
-  int adc = analogRead(LDR);             
-  int level = map(adc, 0, 1023, 0, 255);
+  int adc = analogRead(LDR);              // 0..1023
+  int level = map(adc, 0, 1023, 0, 255);  // 0..255
 
-  if (adc < 400) {             
-    analogWrite(R, level);    
-    analogWrite(Y, level/2);  
-    analogWrite(B, 0);        
+  if (adc < 400) {            // darker -> reddish          
+    analogWrite(R, level);    // Red changes with brightness (level)
+    analogWrite(Y, level/2);  // Yellow is half of red
+    analogWrite(B, 0);        // blue closes
 
-  } else if (adc > 700) {      
-    analogWrite(R, 0);         
-    analogWrite(Y, level/2);   
-    analogWrite(B, level);     
+  } else if (adc > 700) {     // bright -> bluish
+    analogWrite(R, 0);        // red closes 
+    analogWrite(Y, level/2);  // Yellow is half of blue
+    analogWrite(B, level);    // Blue with brightness 
 
-  } else {                     
-    analogWrite(R, level/2);   
-    analogWrite(Y, level);     
-    analogWrite(B, level/2);   
+  } else {                    // mid -> yellowish 
+    analogWrite(R, level/2);  // Red Weak 
+    analogWrite(Y, level);    // Yellow is the brightest 
+    analogWrite(B, level/2);  // blue weak 
   }
 
-  Serial.print("ADC="); Serial.print(adc);
-  Serial.print(" PWM="); Serial.println(level);
-  delay(30);
+  // Calculate voltage (in volts) and output to the serial plotter: V, PWM
+  float v = adc * (5.0 / 1023.0);
+  Serial.print(v, 3);
+  Serial.print(",");
+  Serial.println(level);
+
+  delay(30); // Slight delay for easy observation
 }
     </code></pre>
   </section>
@@ -164,17 +169,85 @@ void loop() {
   <section style="max-width:900px;margin:0 auto;">
     <h2>Additional Questions</h2>
 
-    <h3>Q1. Draw a graph…</h3>
-    <p>See the figure above (one trace per LED: Red, Blue, Yellow).</p>
+    <h3>Q1. Can the variable resistor be R₁ or R₂?</h3>
+    <p><strong>Answer:</strong><br>
+    Yes, either position works — the divider output just changes its direction depending on where the LDR is placed.</p>
+
+    <p><strong>voltage divider layout:</strong></p>
+    <pre>
+  R1 (top)
+  5V ── LDR ──●── 10 kΩ ── GND
+              │
+              A0
+          R2 (bottom)
+    </pre>
+
+    <h4>Case 1: LDR on top (R1 = LDR, R2 = 10kΩ fixed resistor)</h4>
+    <p>
+      Formula: Vmeasure = Vs × R2 / (R1 + R2)<br>
+      When light increases → LDR resistance (R1) decreases → denominator decreases → 
+      Vmeasure increases.<br>
+      In other words: brighter → higher voltage (ADC value goes up).
+    </p>
+
+    <h4>Case 2: LDR on bottom (R2 = LDR, R1 = 10kΩ fixed resistor)</h4>
+    <p>
+      Formula: Vmeasure = Vs × R2 / (R1 + R2)<br>
+      When light increases → LDR resistance (R2) decreases → numerator decreases → 
+      Vmeasure decreases.<br>
+      In other words: brighter → lower voltage (ADC value goes down).
+    </p>
+
+    <h4>Example (Vs = 5 V, Rfixed = 10 kΩ):</h4>
+    <table border="1" cellpadding="6" cellspacing="0">
+      <tr>
+        <th>Light Condition</th>
+        <th>LDR Resistance</th>
+        <th>LDR on Top → Vmeasure</th>
+        <th>LDR on Bottom → Vmeasure</th>
+      </tr>
+      <tr>
+        <td>Dark</td>
+        <td>100 kΩ</td>
+        <td>≈ 0.45 V</td>
+        <td>≈ 4.55 V</td>
+      </tr>
+      <tr>
+        <td>Indoor</td>
+        <td>10 kΩ</td>
+        <td>≈ 2.50 V</td>
+        <td>≈ 2.50 V</td>
+      </tr>
+      <tr>
+        <td>Bright</td>
+        <td>1 kΩ</td>
+        <td>≈ 4.55 V</td>
+        <td>≈ 0.45 V</td>
+      </tr>
+    </table>
+
+    <h4>Conclusion:</h4>
+    <p>
+      Both configurations are valid; the only difference is the direction of change.<br>
+      • If you want brighter → larger ADC value, put the LDR on top (near +5V).<br>
+      • If you want brighter → smaller ADC value, put the LDR on bottom (near GND).<br>
+      • If it is reversed, simply invert the reading in code:
+    </p>
+
+    <pre>
+    adc = 1023 - adc;
+    </pre>
 
     <h3>Q2. How many LEDs could you blink independently? How much current?</h3>
     <p>
-      On an Arduino UNO you can control about <b>18 LEDs</b> independently (avoid D0/D1 used by Serial).  
-      At ~8–10 mA per LED that’s roughly <b>144–180 mA</b> total.  
-      Stay below ATmega328P limits (≈20 mA per pin, ≲200 mA total); ≤150 mA is safe.
+      In the Serial Plotter, value1 (blue) represents the measured voltage across the LDR divider, and value2 (orange) represents the PWM output to the LEDs.
+      The x-axis corresponds to time (sampling index), and the y-axis shows the measured values.
+      As light intensity increases, Vmeasure (value1) rises and the PWM output (value2) changes accordingly, demonstrating the LDR’s control over the LED brightness.
     </p>
+    <img src="Plotter_a3.gif" alt="Serial Plotter" />
 
-    <h3>Q4. How fast until you can’t tell they’re blinking?</h3>
+
+    <h3>Q3. How fast until you can’t tell they’re blinking?</h3>
     <p>
       Human flicker-fusion threshold ≈ <b>50–60 Hz</b> (period ≈ <b>20–16.7 ms</b>).  
       For a steady look, use <b>≥100 Hz</b> (≤10 ms period).
