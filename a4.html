@@ -173,9 +173,13 @@ if read &lt; 0 or read &gt; MAX_RANGE:
 use(read)</code></pre>
 
     <h3>Q3. ±10% random noise (pseudocode)</h3>
-    <pre><code>alpha = 0.2
-filtered = alpha*new + (1-alpha)*filtered
-use(filtered)</code></pre>
+   <pre><code>alpha = 0.2
+filtered = sense()   # init once
+loop:
+    new = sense()
+    filtered = alpha*new + (1-alpha)*filtered
+    filtered = clamp(filtered, 0, MAX_RANGE)
+    use(filtered)</code></pre>
     <h3>Q4. AI Using</h3>
     <p>Yes, I used. I didn't add capacitors at first, but after using GPT, 
       I realized that adding capacitors would cause the servos to move around, 
