@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assignment 4: Libraries</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+    h1 { font-size: 26px; }
+    pre { background: #f4f4f4; padding: 8px; border-radius: 4px; overflow:auto; }
+    ul { padding-left: 20px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
+    .assignment { text-align: center; border: 1px solid #ccc; padding: 10px; width: 250px; }
+    .assignment img { width: 100%; max-width: 250px; }
+    hr { margin-top: 40px; }
+    table.basic td, table.basic th { border:1px solid #ccc; padding:6px 8px; }
+    table.basic { border-collapse: collapse; }
+  </style>
+</head>
+
+<body>
+  <h1>Siheng Li's Assignment 4: IR remote control solution Page!</h1>
+
+  <h2>Overview</h2>
+  <p><strong>Input:</strong> IR Receiver (Library: IRremote v4.x) &nbsp; | &nbsp; <strong>Output:</strong> SG90 Servo (Library: Servo) &nbsp; | &nbsp; <strong>Board:</strong> Arduino Uno (5V)</p>
+  <ul>
+    <li>Press different buttons on the remote to increase/decrease the servo 
+      angle/return to 90°. (Although I don't know why the starting value is 
+      tilted, not 90°)</li> 
+  </ul>
+
+  <h2>Schematic Overview</h2>
+  <table class="basic">
+    <tr>
+      <th>IR Receiver(input)</th>
+      <td>OUT → <code>D11</code>;VCC → <code>5V</code>;GND → <code>GND</code></td>
+    </tr>
+    <tr>
+      <th>Servo(output)</th>
+      <td>Signal(orange) → <code>D9</code>；V+(red) → <code>5V</code>；GND(brown) → <code>GND</code></td>
+    </tr>
+    <tr>
+      <th>Rationale</th>
+      <td>D11 facilitates stable decoding; D9 is the commonly used control pin for 
+        the servo; 100 µF suppresses voltage drop and reset caused by instantaneous 
+        current of the servo.</td>
+    </tr>
+  </table>
+  <div class="grid">
+    <div class="assignment">
+      <h2>Schematic</h2>
+      <img src="schematic_a4.jpg" alt="schematic" />
+      <p>schematic!</p>
+    </div>
+
+    <div class="assignment">
+      <h2>Circuit</h2>
+      <img src="a4_circuit.jpg" alt="circuit" />
+      <p>circuit!</p>
+    </div>
+
+    <div class="assignment">
+      <h2>Circuit Operation</h2>
+      <img src="a4_operation.gif" alt="operation" />
+      <p>circuit's operation!</p>
+    </div>
+  <hr />
+
+  <section id="firmware">
+    <h2>Firmware</h2>
+    <pre><code>
+// Import IR remote control library (v4.x uses .hpp)
+#include <IRremote.hpp>
+// Import the Servo library
+#include <Servo.h>
+
+const int PIN_IR    = 11; // IR receiver OUT
+const int PIN_SERVO = 9;  // Servo signal
+
+Servo myservo;
+int angle = 90;           // Initial Angle
+const int STEP = 10;      // Step angle for each adjustment
+
+void setup() {
+  // Start the serial port (115200 for easy observation)
+  Serial.begin(115200);
+
+  // Start infrared reception
+  IrReceiver.begin(PIN_IR);
+  // Connect the servo and center it
+  myservo.attach(PIN_SERVO);
+  myservo.write(angle);
+  // Start prompt
+  Serial.println(F("[IR->Servo v4] Ready. Press keys and watch 'protocol' + 'command'."));
+}
+
+void loop() {
+  if (IrReceiver.decode()) {
+    // Take out the reference of this decoding data for easy writing
+    auto &d = IrReceiver.decodedIRData;
+
+    // Print protocols, commands, and source codes to help you record
+    Serial.print(F("protocol="));
+    Serial.print(getProtocolString(d.protocol));
+    Serial.print(F("  command=0x"));
+    Serial.print(d.command, HEX);
+    Serial.print(F("  raw=0x"));
+    Serial.println(d.decodedRawData, HEX);
+
+    // Ignore duplicate frames or invalid commands
+    bool isRepeat = d.flags & IRDATA_FLAGS_IS_REPEAT;
+    if (!isRepeat && d.command != 0) {
+      switch (d.command) {
+        case 0x46:                
+        // First use the dummy value 0x10, then use the "Volume +" 
+        // on the remote control to replace the actual command 
+        // value 0x46 on the serial monitor.
+          angle = min(angle + STEP, 180);
+          break;
+        case 0x15:
+        // The command of "Volume -" is the same as "Volume +", 
+        // first replace it with a virtual value
+          angle = max(angle - STEP, 0);
+          break;
+        case 0x40:                // "Center key" command
+          angle = 90;
+          break;
+        default:
+          // Other keys are not processed
+          break;
+      }
+      // Write the servo angle
+      myservo.write(angle);
+      // Print current angle
+      Serial.print(F("Servo angle = "));
+      Serial.println(angle);
+    }
+
+    IrReceiver.resume(); // Prepare to receive the next frame
+  }
+}
+    </code></pre>
+  </section>
+
+  <hr />
+
+  <section style="max-width:900px;margin:0 auto;">
+    <h2>Additional Questions</h2>
+    <h3>Q1. Voltage at Pin 9 vs Time</h3>
+    <pre><code>
+#include <Servo.h>
+Servo myservo;
+
+void setup() {
+  myservo.attach(9);
+}
+    </code></pre>
+        <p><strong>结论：</strong></p>
+<p>
+  D9 outputs the servo PWM signal with a frequency of about 50&nbsp;Hz(period ≈ 20&nbsp;ms).
+</p>
+<p>
+  encoding angle: about 1.0&nbsp;ms → 0°;1.5&nbsp;ms → 90°;2.0&nbsp;ms → 180°.
+</p>
+<p>
+  So <code>myservo.write(pos)</code> increases,<strong>The period remains unchanged, and the pulse width gradually widens</strong>.
+</p>
+    <img src="graph_q1_a4.jpg" alt="schematic" />
+
+    <h3>Q2. erroneous reading 1% of the time</h3>
+    <pre><code>read = sense()
+if read &lt; 0 or read &gt; MAX_RANGE:
+    read = sense()     # Reread immediately
+use(read)</code></pre>
+
+    <h3>Q3. ±10% random noise (pseudocode)</h3>
+    <pre><code>alpha = 0.2
+filtered = alpha*new + (1-alpha)*filtered
+use(filtered)</code></pre>
+    <h3>Q4. AI Using</h3>
+    <p>Yes, I used. I didn't add capacitors at first, but after using GPT, 
+      I realized that adding capacitors would cause the servos to move around, 
+      the Arduino to restart, and the infrared to not work.</p>
+    
+  </section>
+</body>
+</html>
