@@ -55,7 +55,7 @@
     <div class="assignment">
       <h2>Circuit Operation</h2>
       <img src="a5_operation1.gif" alt="operation" />
-      <img src="a5_operation2.gif" alt="operation" />
+      <img src="a5_operation_2.gif" alt="operation" />
       <p>circuit's operation!</p>
       <p>
         The entire git file was too large to load in its entirety, so I split it into two parts.
@@ -135,7 +135,7 @@ void loop() {
 
   <section style="max-width:900px;margin:0 auto;">
     <h2>Additional Questions</h2>
-    <h3>Q1. What is the absolute maximum amount of current between pins 2 and 3?</h3>
+    <h3><strong>Q1. What is the absolute maximum amount of current between pins 2 and 3?</strong></h3>
       <p><strong>Conclusion:</strong></p>
 <p>
   The absolute maximum amount of current between pins 2 and 3 is 37.2 A.
@@ -145,17 +145,56 @@ void loop() {
   Exceeding this value will cause the MOSFET's internal junction temperature to rise rapidly, exceeding 150 °C → burn out.
 </p>
 
-    <h3>Q2. Draw a schematic for a circuit with using at least your arduino, a DC motor, a flyback diode, and capacitors 
-      between power and ground. Find parts with datasheets you could use for each of these schematic components.</h3>
-      
-    <h3>Q3. ±10% random noise (pseudocode)</h3>
-   <pre><code>alpha = 0.2
-filtered = sense()   # init once
-loop:
-    new = sense()
-    filtered = alpha*new + (1-alpha)*filtered
-    filtered = clamp(filtered, 0, MAX_RANGE)
-    use(filtered)</code></pre>
+    <h3><strong>Q2. Draw a schematic for a circuit with using at least your arduino, a DC motor, a flyback diode, and capacitors 
+      between power and ground. Find parts with datasheets you could use for each of these schematic components.</strong></h3>
+      <img src="a5_addition2.jpg" alt="operation" />
+      <p>
+        This circuit uses an N-channel MOSFET to control the DC motor. The MOSFET is driven by the Arduino's D5 pin and a 220 Ω 
+        resistor. The MOSFET acts as a switch, controlling the motor's on/off state based on the Arduino's PWM signal. The 
+        freewheeling diode connected in parallel with the motor protects the transistor from voltage spikes caused by the motor's 
+        inductive load. Two capacitors (100 µF and 0.1 µF) are connected in parallel between power and ground to smooth voltage 
+        fluctuations and reduce electrical noise.
+      </p>
+
+    <h3><strong>
+      Q3. Draw a schematic using at least your arduino, this chip, and two motors. Write (pseudo) code that shows how you would 
+      move the motors both forward, both back, then one forward one back, and one back then forward.
+    </strong></h3>
+    <img src="a5_additional3.jpg" alt="operation" />
+
+   <pre><code>
+motorA = 5;   // PWM pin D5
+motorB = 6;   // PWM pin D6
+
+void setup() {
+  pinMode(motorA, OUTPUT);
+  pinMode(motorB, OUTPUT);
+}
+
+// Move both motors forward
+digitalWrite(motorA, HIGH);
+digitalWrite(motorB, HIGH);
+delay(2000);
+
+// Move both motors backward
+digitalWrite(motorA, LOW);
+digitalWrite(motorB, LOW);
+delay(2000);
+
+// One forward, one backward
+digitalWrite(motorA, HIGH);
+digitalWrite(motorB, LOW);
+delay(2000);
+
+// Swap directions: one backward, one forward
+digitalWrite(motorA, LOW);
+digitalWrite(motorB, HIGH);
+delay(2000);
+
+// Stop both
+digitalWrite(motorA, LOW);
+digitalWrite(motorB, LOW);
+  </code></pre>
     <h3>Q4. AI Using</h3>
     <p>No.</p>
     
