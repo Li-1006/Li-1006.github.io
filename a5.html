@@ -8,15 +8,17 @@
     h1 { font-size: 26px; }
     pre { background: #f4f4f4; padding: 8px; border-radius: 4px; overflow:auto; }
     ul { padding-left: 20px; }
-    .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
-    .assignment { text-align: center; border: 1px solid #ccc; padding: 10px; width: 250px; }
-    .assignment img { width: 100%; max-width: 250px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; justify-content:center; }
+    .assignment { text-align: center; border: 1px solid #ccc; padding: 10px; width: 480px; }
+    .assignment img { width: 100%; max-width: 450px; border-radius: 6px; }
     hr { margin-top: 40px; }
     table.basic td, table.basic th { border:1px solid #ccc; padding:6px 8px; }
     table.basic { border-collapse: collapse; width: 100%; }
     .card { border:1px solid #ccc; padding:12px; border-radius:6px; }
     figcaption { font-size: 0.95em; color:#444; margin-top:8px; }
     .small { color:#666; font-size: 0.95em; }
+    /* 控制 Additional Questions 图片大小 */
+    .small-img img { max-width: 300px; width:100%; border-radius:6px; }
   </style>
 </head>
 
@@ -144,7 +146,7 @@ void loop() {
     </p>
 
     <h3><strong>Q2. Draw a schematic using Arduino, a DC motor, a flyback diode, and capacitors between power and ground.</strong></h3>
-    <figure>
+    <figure class="small-img">
       <img src="a5_addition2.jpg" alt="DC motor + N-MOSFET + flyback diode" />
       <figcaption>
         This circuit uses an N-channel MOSFET to control a DC motor. A flyback diode across the motor protects the transistor from voltage spikes. Capacitors between power and ground smooth voltage fluctuations.
@@ -154,7 +156,7 @@ void loop() {
     <h3><strong>
       Q3. Using Arduino, this chip, and two motors. Move both forward, both back, then one forward one back, and one back then forward.
     </strong></h3>
-    <figure>
+    <figure class="small-img">
       <img src="a5_additional3.jpg" alt="Dual motor H-bridge wiring" />
       <figcaption>Example H-bridge setup controlling two motors via Arduino PWM.</figcaption>
     </figure>
