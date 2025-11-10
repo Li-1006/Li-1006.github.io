@@ -13,191 +13,177 @@
     .assignment img { width: 100%; max-width: 250px; }
     hr { margin-top: 40px; }
     table.basic td, table.basic th { border:1px solid #ccc; padding:6px 8px; }
-    table.basic { border-collapse: collapse; }
+    table.basic { border-collapse: collapse; width: 100%; }
+    .card { border:1px solid #ccc; padding:12px; border-radius:6px; }
+    figcaption { font-size: 0.95em; color:#444; margin-top:8px; }
+    .small { color:#666; font-size: 0.95em; }
   </style>
 </head>
 
 <body>
-  <h1>Siheng Li's Assignment 5: High(er) voltage and transistors Page!</h1>
+  <h1>Siheng Li's Assignment 5: High(er) voltage and transistors Page</h1>
 
   <h2>Schematic Overview</h2>
-  <table class="basic">
+  <div class="card">
     <p><strong>Schematic Explanation:</strong></p>
     <p>
       In this IR-controlled fan circuit, an Arduino UNO sends PWM signals from 
-      digital pin 5 to the Gate of an N-channel MOSFET.  A 220 Ω resistor is placed in 
-      series between D5 and the Gate to limit inrush current during switching. The fan's 
-      positive lead connects to +12 V, and its negative lead connects to the MOSFET's Drain; 
-      the Source connects to system ground, which is shared (common) with the Arduino and the 
-      12 V power supply.
+      digital pin 5 to the Gate of an N-channel MOSFET through a 220&nbsp;Ω resistor 
+      to limit inrush current. The fan’s positive lead connects to +12&nbsp;V, and its 
+      negative lead connects to the MOSFET’s Drain; the Source connects to system 
+      ground shared with both the Arduino and the 12&nbsp;V power supply.
     </p>
     <p>
-      A diode rectifier is placed across the fan terminals (cathode to +12 V, anode to Drain) 
-      to absorb voltage spikes when the fan's motor is suddenly switched off. The IR receiver 
-      module outputs decoded digital signals on its OUT pin to Arduino D2; its VCC and GND pins 
-      connect to 5 V and GND respectively. 
+      A flyback diode is placed across the fan terminals (cathode to +12&nbsp;V, anode 
+      to Drain) to absorb voltage spikes when the motor is switched off. The IR receiver 
+      outputs decoded signals from its OUT pin to Arduino D2, with VCC and GND connected 
+      to 5&nbsp;V and GND respectively.
     </p>
-  </table>
+  </div>
+
   <div class="grid">
     <div class="assignment">
       <h2>Schematic</h2>
-      <img src="a5_Schematic.jpg" alt="schematic" />
-      <p>schematic!</p>
+      <figure>
+        <img src="a5_Schematic.jpg" alt="IR-controlled fan schematic with N-MOSFET low-side switch and flyback diode" />
+        <figcaption>Final schematic (low-side N-MOSFET + flyback diode).</figcaption>
+      </figure>
     </div>
 
     <div class="assignment">
       <h2>Circuit</h2>
-      <img src="a5_circuit_1.jpg" alt="circuit" />
-      <img src="a5_circuit_2.jpg" alt="circuit" />
-      <p>circuit!</p>
+      <figure>
+        <img src="a5_circuit_1.jpg" alt="Breadboard build top view" />
+        <img src="a5_circuit_2.jpg" alt="Breadboard build detail" />
+        <figcaption>Breadboard build (overview and detail).</figcaption>
+      </figure>
     </div>
 
     <div class="assignment">
       <h2>Circuit Operation</h2>
-      <img src="a5_operation1.gif" alt="operation" />
-      <img src="a5_operation_2.gif" alt="operation" />
-      <p>circuit's operation!</p>
-      <p>
-        The entire git file was too large to load in its entirety, so I split it into two parts.
-      </p>
+      <figure>
+        <img src="a5_operation1.gif" alt="Operation demo gif 1" />
+        <img src="a5_operation_2.gif" alt="Operation demo gif 2" />
+        <figcaption>Operation demo (split into two GIFs due to file size limits).</figcaption>
+      </figure>
+      <p class="small">The entire <strong>gif</strong> file was too large to load in its entirety, so I split it into two parts.</p>
     </div>
+  </div>
+
   <hr />
 
   <section id="firmware">
     <h2>Firmware</h2>
-    <pre><code>
-// Import IR remote control library (v4.x uses .hpp)
-#include <IRremote.hpp>            // Using IRremote v3.x
-#define IR_RECEIVE_PIN 2           // IR Receive Pin (D2)
-#define FAN_PWM_PIN 5              // MOSFET Gate PWM
-#define BAUD 9600                  // Serial port baud rate
+    <pre><code>// IRremote v3.x/v4.x use &lt;IRremote.hpp&gt; (v2.x used &lt;IRremote.h&gt;)
+#include &lt;IRremote.hpp&gt;
 
-// === Input four monitoring values. ===
-const uint8_t CMD_STOP = 0x46;     // stop
-const uint8_t CMD_LOW  = 0x0C;     // 30%
-const uint8_t CMD_MID  = 0x18;     // 60%
-const uint8_t CMD_HIGH = 0x5E;     // 100%
+#define IR_RECEIVE_PIN 2
+#define FAN_PWM_PIN    5
+#define BAUD           9600
 
-// Preset PWM level
+// Hex codes must match your remote; adjust after reading Serial Monitor prints.
+const uint8_t CMD_STOP = 0x46;  // stop
+const uint8_t CMD_LOW  = 0x0C;  // ~30%
+const uint8_t CMD_MID  = 0x18;  // ~60%
+const uint8_t CMD_HIGH = 0x5E;  // 100%
+
 const uint8_t LEVEL_STOP = 0;
-const uint8_t LEVEL_LOW  = 77;     // ≈30%
-const uint8_t LEVEL_MID  = 153;    // ≈60%
-const uint8_t LEVEL_HIGH = 255;    // 100%
+const uint8_t LEVEL_LOW  = 77;   // ≈30%
+const uint8_t LEVEL_MID  = 153;  // ≈60%
+const uint8_t LEVEL_HIGH = 255;  // 100%
 
-// Current Duty Cycle
 uint8_t currentPwm = LEVEL_STOP;
 
-// setup
+void applyPwm(uint8_t level) {
+  currentPwm = level;
+  analogWrite(FAN_PWM_PIN, currentPwm);
+}
+
 void setup() {
   Serial.begin(BAUD);
   delay(200);
-  IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);  // Enable infrared reception
-  pinMode(FAN_PWM_PIN, OUTPUT);                            // PWM pin set to output
-  applyPwm(LEVEL_STOP);                                    // Power-on default stops.
+  IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
+  pinMode(FAN_PWM_PIN, OUTPUT);
+  applyPwm(LEVEL_STOP);
   Serial.println(F("Ready. Use mapped keys (STOP/LOW/MID/HIGH)."));
 }
 
 void loop() {
-  if (IrReceiver.decode()) {
-    // Filter "duplicate frames"
-    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT) {
-      IrReceiver.resume();
-      return;
-    }
+  if (!IrReceiver.decode()) return;
 
-    // Read and print the command code for easy verification.
-    uint8_t cmd = IrReceiver.decodedIRData.command;
-    Serial.print(F("Recv cmd 0x"));
-    Serial.println(cmd, HEX);
-
-    // Execute according to the mapping.
-    if (cmd == CMD_STOP) {
-      applyPwm(LEVEL_STOP);
-    } else if (cmd == CMD_LOW) {
-      applyPwm(LEVEL_LOW);
-    } else if (cmd == CMD_MID) {
-      applyPwm(LEVEL_MID);
-    } else if (cmd == CMD_HIGH) {
-      applyPwm(LEVEL_HIGH);
-    } else {
-      Serial.print(F("Unknown cmd, keep current PWM: 0x"));
-      Serial.println(cmd, HEX);
-    }
-
-    // Ready to receive the next frame.
+  if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT) {
     IrReceiver.resume();
+    return;
   }
-}
-    </code></pre>
+
+  uint8_t cmd = IrReceiver.decodedIRData.command;
+  Serial.print(F("Recv cmd 0x")); Serial.println(cmd, HEX);
+
+  if      (cmd == CMD_STOP) applyPwm(LEVEL_STOP);
+  else if (cmd == CMD_LOW)  applyPwm(LEVEL_LOW);
+  else if (cmd == CMD_MID)  applyPwm(LEVEL_MID);
+  else if (cmd == CMD_HIGH) applyPwm(LEVEL_HIGH);
+  else {
+    Serial.print(F("Unknown cmd, keep current PWM: 0x"));
+    Serial.println(cmd, HEX);
+  }
+
+  IrReceiver.resume();
+}</code></pre>
   </section>
-  </div>
+
   <hr />
 
   <section style="max-width:900px;margin:0 auto;">
     <h2>Additional Questions</h2>
-    <h3><strong>Q1. What is the absolute maximum amount of current between pins 2 and 3?</strong></h3>
-      <p><strong>Conclusion:</strong></p>
-<p>
-  The absolute maximum amount of current between pins 2 and 3 is 37.2 A.
-</p>
-<p>
-  37.2 A is the maximum continuous current at 25 °C under ideal heat dissipation conditions ("infinite heatsink").
-  Exceeding this value will cause the MOSFET's internal junction temperature to rise rapidly, exceeding 150 °C → burn out.
-</p>
 
-    <h3><strong>Q2. Draw a schematic for a circuit with using at least your arduino, a DC motor, a flyback diode, and capacitors 
-      between power and ground. Find parts with datasheets you could use for each of these schematic components.</strong></h3>
-      <img src="a5_addition2.jpg" alt="operation" />
-      <p>
-        This circuit uses an N-channel MOSFET to control the DC motor. The MOSFET is driven by the Arduino's D5 pin and a 220 Ω 
-        resistor. The MOSFET acts as a switch, controlling the motor's on/off state based on the Arduino's PWM signal. The 
-        freewheeling diode connected in parallel with the motor protects the transistor from voltage spikes caused by the motor's 
-        inductive load. Two capacitors (100 µF and 0.1 µF) are connected in parallel between power and ground to smooth voltage 
-        fluctuations and reduce electrical noise.
-      </p>
+    <h3><strong>Q1. What is the absolute maximum amount of current between pins 2 and 3?</strong></h3>
+    <p><strong>Answer:</strong></p>
+    <p>
+      The absolute maximum continuous drain current (between pins 2 and 3) for the MOSFET is approximately 37.2&nbsp;A at 25&nbsp;°C under ideal cooling conditions (“infinite heatsink”). Exceeding this current would raise the junction temperature above 150&nbsp;°C and could damage the device.
+    </p>
+
+    <h3><strong>Q2. Draw a schematic using Arduino, a DC motor, a flyback diode, and capacitors between power and ground.</strong></h3>
+    <figure>
+      <img src="a5_addition2.jpg" alt="DC motor + N-MOSFET + flyback diode" />
+      <figcaption>
+        This circuit uses an N-channel MOSFET to control a DC motor. A flyback diode across the motor protects the transistor from voltage spikes. Capacitors between power and ground smooth voltage fluctuations.
+      </figcaption>
+    </figure>
 
     <h3><strong>
-      Q3. Draw a schematic using at least your arduino, this chip, and two motors. Write (pseudo) code that shows how you would 
-      move the motors both forward, both back, then one forward one back, and one back then forward.
+      Q3. Using Arduino, this chip, and two motors. Move both forward, both back, then one forward one back, and one back then forward.
     </strong></h3>
-    <img src="a5_additional3.jpg" alt="operation" />
+    <figure>
+      <img src="a5_additional3.jpg" alt="Dual motor H-bridge wiring" />
+      <figcaption>Example H-bridge setup controlling two motors via Arduino PWM.</figcaption>
+    </figure>
 
-   <pre><code>
-motorA = 5;   // PWM pin D5
-motorB = 6;   // PWM pin D6
+<pre><code>// Example pseudocode for dual motor control
+int IN1=8, IN2=9, ENA=5;
+int IN3=10, IN4=11, ENB=6;
 
-void setup() {
-  pinMode(motorA, OUTPUT);
-  pinMode(motorB, OUTPUT);
+void setup(){
+  pinMode(IN1,OUTPUT); pinMode(IN2,OUTPUT); pinMode(ENA,OUTPUT);
+  pinMode(IN3,OUTPUT); pinMode(IN4,OUTPUT); pinMode(ENB,OUTPUT);
 }
 
-// Move both motors forward
-digitalWrite(motorA, HIGH);
-digitalWrite(motorB, HIGH);
-delay(2000);
+void motorA_forward(int pwm){ digitalWrite(IN1,HIGH); digitalWrite(IN2,LOW);  analogWrite(ENA,pwm); }
+void motorA_backward(int pwm){digitalWrite(IN1,LOW);  digitalWrite(IN2,HIGH); analogWrite(ENA,pwm); }
+void motorB_forward(int pwm){ digitalWrite(IN3,HIGH); digitalWrite(IN4,LOW);  analogWrite(ENB,pwm); }
+void motorB_backward(int pwm){digitalWrite(IN3,LOW);  digitalWrite(IN4,HIGH); analogWrite(ENB,pwm); }
 
-// Move both motors backward
-digitalWrite(motorA, LOW);
-digitalWrite(motorB, LOW);
-delay(2000);
+void loop(){
+  motorA_forward(200); motorB_forward(200); delay(2000);
+  motorA_backward(200); motorB_backward(200); delay(2000);
+  motorA_forward(200); motorB_backward(200); delay(2000);
+  motorA_backward(200); motorB_forward(200); delay(2000);
+  analogWrite(ENA,0); analogWrite(ENB,0); delay(1000);
+}</code></pre>
 
-// One forward, one backward
-digitalWrite(motorA, HIGH);
-digitalWrite(motorB, LOW);
-delay(2000);
-
-// Swap directions: one backward, one forward
-digitalWrite(motorA, LOW);
-digitalWrite(motorB, HIGH);
-delay(2000);
-
-// Stop both
-digitalWrite(motorA, LOW);
-digitalWrite(motorB, LOW);
-  </code></pre>
     <h3>Q4. AI Using</h3>
     <p>No.</p>
-    
   </section>
+
 </body>
 </html>
