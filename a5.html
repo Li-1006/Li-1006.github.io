@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assignment 5: High(er) voltage and transistors</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+    h1 { font-size: 26px; }
+    pre { background: #f4f4f4; padding: 8px; border-radius: 4px; overflow:auto; }
+    ul { padding-left: 20px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
+    .assignment { text-align: center; border: 1px solid #ccc; padding: 10px; width: 250px; }
+    .assignment img { width: 100%; max-width: 250px; }
+    hr { margin-top: 40px; }
+    table.basic td, table.basic th { border:1px solid #ccc; padding:6px 8px; }
+    table.basic { border-collapse: collapse; }
+  </style>
+</head>
+
+<body>
+  <h1>Siheng Li's Assignment 5: High(er) voltage and transistors Page!</h1>
+
+  <h2>Schematic Overview</h2>
+  <table class="basic">
+    <p><strong>Schematic Explanation:</strong></p>
+    <p>
+      In this IR-controlled fan circuit, an Arduino UNO sends PWM signals from 
+      digital pin 5 to the Gate of an N-channel MOSFET.  A 220 Ω resistor is placed in 
+      series between D5 and the Gate to limit inrush current during switching. The fan's 
+      positive lead connects to +12 V, and its negative lead connects to the MOSFET's Drain; 
+      the Source connects to system ground, which is shared (common) with the Arduino and the 
+      12 V power supply.
+    </p>
+    <p>
+      A diode rectifier is placed across the fan terminals (cathode to +12 V, anode to Drain) 
+      to absorb voltage spikes when the fan's motor is suddenly switched off. The IR receiver 
+      module outputs decoded digital signals on its OUT pin to Arduino D2; its VCC and GND pins 
+      connect to 5 V and GND respectively. 
+    </p>
+  </table>
+  <div class="grid">
+    <div class="assignment">
+      <h2>Schematic</h2>
+      <img src="a5_Schematic.jpg" alt="schematic" />
+      <p>schematic!</p>
+    </div>
+
+    <div class="assignment">
+      <h2>Circuit</h2>
+      <img src="a5_circuit_1.jpg" alt="circuit" />
+      <img src="a5_circuit_2.jpg" alt="circuit" />
+      <p>circuit!</p>
+    </div>
+
+    <div class="assignment">
+      <h2>Circuit Operation</h2>
+      <img src="a5.gif" alt="operation" />
+      <p>circuit's operation!</p>
+    </div>
+  <hr />
+
+  <section id="firmware">
+    <h2>Firmware</h2>
+    <pre><code>
+// Import IR remote control library (v4.x uses .hpp)
+#include <IRremote.hpp>            // Using IRremote v3.x
+#define IR_RECEIVE_PIN 2           // IR Receive Pin (D2)
+#define FAN_PWM_PIN 5              // MOSFET Gate PWM
+#define BAUD 9600                  // Serial port baud rate
+
+// === Input four monitoring values. ===
+const uint8_t CMD_STOP = 0x46;     // stop
+const uint8_t CMD_LOW  = 0x0C;     // 30%
+const uint8_t CMD_MID  = 0x18;     // 60%
+const uint8_t CMD_HIGH = 0x5E;     // 100%
+
+// Preset PWM level
+const uint8_t LEVEL_STOP = 0;
+const uint8_t LEVEL_LOW  = 77;     // ≈30%
+const uint8_t LEVEL_MID  = 153;    // ≈60%
+const uint8_t LEVEL_HIGH = 255;    // 100%
+
+// Current Duty Cycle
+uint8_t currentPwm = LEVEL_STOP;
+
+// setup
+void setup() {
+  Serial.begin(BAUD);
+  delay(200);
+  IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);  // Enable infrared reception
+  pinMode(FAN_PWM_PIN, OUTPUT);                            // PWM pin set to output
+  applyPwm(LEVEL_STOP);                                    // Power-on default stops.
+  Serial.println(F("Ready. Use mapped keys (STOP/LOW/MID/HIGH)."));
+}
+
+void loop() {
+  if (IrReceiver.decode()) {
+    // Filter "duplicate frames"
+    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT) {
+      IrReceiver.resume();
+      return;
+    }
+
+    // Read and print the command code for easy verification.
+    uint8_t cmd = IrReceiver.decodedIRData.command;
+    Serial.print(F("Recv cmd 0x"));
+    Serial.println(cmd, HEX);
+
+    // Execute according to the mapping.
+    if (cmd == CMD_STOP) {
+      applyPwm(LEVEL_STOP);
+    } else if (cmd == CMD_LOW) {
+      applyPwm(LEVEL_LOW);
+    } else if (cmd == CMD_MID) {
+      applyPwm(LEVEL_MID);
+    } else if (cmd == CMD_HIGH) {
+      applyPwm(LEVEL_HIGH);
+    } else {
+      Serial.print(F("Unknown cmd, keep current PWM: 0x"));
+      Serial.println(cmd, HEX);
+    }
+
+    // Ready to receive the next frame.
+    IrReceiver.resume();
+  }
+}
+    </code></pre>
+  </section>
+  </div>
+  <hr />
+
+  <section style="max-width:900px;margin:0 auto;">
+    <h2>Additional Questions</h2>
+    <h3>Q1. What is the absolute maximum amount of current between pins 2 and 3?</h3>
+      <p><strong>Conclusion:</strong></p>
+<p>
+  The absolute maximum amount of current between pins 2 and 3 is 37.2 A.
+</p>
+<p>
+  37.2 A is the maximum continuous current at 25 °C under ideal heat dissipation conditions ("infinite heatsink").
+  Exceeding this value will cause the MOSFET's internal junction temperature to rise rapidly, exceeding 150 °C → burn out.
+</p>
+
+    <h3>Q2. Draw a schematic for a circuit with using at least your arduino, a DC motor, a flyback diode, and capacitors 
+      between power and ground. Find parts with datasheets you could use for each of these schematic components.</h3>
+    <pre><code>read = sense()
+if read &lt; 0 or read &gt; MAX_RANGE:
+    read = sense()     # Reread immediately
+use(read)</code></pre>
+
+    <h3>Q3. ±10% random noise (pseudocode)</h3>
+   <pre><code>alpha = 0.2
+filtered = sense()   # init once
+loop:
+    new = sense()
+    filtered = alpha*new + (1-alpha)*filtered
+    filtered = clamp(filtered, 0, MAX_RANGE)
+    use(filtered)</code></pre>
+    <h3>Q4. AI Using</h3>
+    <p>No.</p>
+    
+  </section>
+</body>
+</html>
