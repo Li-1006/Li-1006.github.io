@@ -48,7 +48,7 @@
       GND → GND: Circuit common ground.
       VRx → A0: Output analog voltage (representing up/down direction).
       VRy → A1: Output analog voltage (representing left/right direction)
-      SW → D2: Joystick button (grounded when pressed), read using pinMode(D2, INPUT_PULLUP) in the Arduino program.
+      SW → D3: Joystick button (grounded when pressed), read using pinMode(D3, INPUT_PULLUP) in the Arduino program.
     </p>
     <p><strong>Resistor Calculation</strong></p>
     <ul>
@@ -98,7 +98,7 @@
 
 // Joystick and button pins
 const int PIN_VRX = A0;    // Joystick X
-const int PIN_VRY = A1;    // // Joystick y
+const int PIN_VRY = A1;    // Joystick y
 // Joystick button (pressed to ground)
 const int PIN_SW  = 3;     
 
@@ -174,7 +174,6 @@ void handleLine(const char* s) {
   <section id="Joystick ↔ 2*LED · p5.js + WebSerial">
     <h2>WebSerial</h2>
     <a href="http://127.0.0.1:5500/index6.html">Click here</a>
-    <a href="index6.html"></a>
     <pre><code>
   // Canvas Size
   let cw=520, ch=340;
@@ -363,7 +362,8 @@ void handleLine(const char* s) {
       sendL2(led2);
     }
   }
-    </code>
+
+    </code></pre>
   </section>
 
 </body>

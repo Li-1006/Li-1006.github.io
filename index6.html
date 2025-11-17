@@ -68,7 +68,7 @@
     const v1=document.getElementById('v1');
     const v2=document.getElementById('v2');
 
-    // 检查浏览器是否支持 Web Serial
+    // Check if your browser supports Web Serial.
     if (!("serial" in navigator)) {
       statusEl.textContent = "Web Serial not supported.";
       connectBtn.disabled = true;
@@ -76,7 +76,7 @@
       return;
     }
 
-    // 点击“Connect”按钮连接 Arduino
+    // Click the "Connect" button to connect the Arduino.
     connectBtn.onclick = () => {
       if (port) return;  // 已连接则忽略
       navigator.serial.requestPort().then(p => {
@@ -96,7 +96,7 @@
       });
     };
 
-    // 点击“Disconnect”按钮断开连接
+    // Clicking the "Disconnect" button disconnects the connection.
     disconnectBtn.onclick = () => {
       if (reader) {
         reader.cancel().then(() => { reader.releaseLock(); reader = null; });
@@ -169,7 +169,7 @@
     return v;
   }
 
-  // p5：Canvas and Interaction
+  // p5:Canvas and Interaction
   function setup() {
     const cnv = createCanvas(cw, ch);
     cnv.parent("canvas-wrap");
@@ -233,6 +233,6 @@
       sendL2(led2);
     }
   }
-</script>
+  </script>
 </body>
 </html>
