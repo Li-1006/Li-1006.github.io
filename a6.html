@@ -19,6 +19,13 @@
     .small { color:#666; font-size: 0.95em; }
     /* control Additional Questions image size */
     .small-img img { max-width: 300px; width:100%; border-radius:6px; }
+
+    figure figcaption {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 
@@ -79,11 +86,14 @@
     <div class="assignment">
       <h2>Circuit Operation</h2>
       <figure>
-        <img src="a6_operation_1.gif" alt="Please pay attention to the mouse and LEDs. " />
-        <p>Please pay attention to the mouse and LEDs</p>
-        <img src="a6_operation_2.gif" alt="Please pay attention to the joystick and webpage." />
-        <img src="a6_operation_3.gif" alt="Please pay attention to the joystick and background of web." />
-        <img src="a6_operation_4.gif" alt="Please pay attention to the keyboard and LEDs." />
+        <img src="a6_operation_1.gif" alt="Circuit Operation" />
+        <figcaption>Please pay attention to the mouse and LEDs.</figcaption>
+        <img src="a6_operation_2.gif" alt="circuit operation" />
+        <figcaption>Please pay attention to the joystick and webpage.</figcaption>
+        <img src="a6_operation_3.gif" alt="circuit operation" />
+        <figcaption>Please pay attention to the joystick and background of web.</figcaption>
+        <img src="a6_operation_4.gif" alt="circuit operation" />
+        <figcaption>Please pay attention to the keyboard and LEDs.</figcaption>
         <figcaption>Operation demo</figcaption>
       </figure>
     </div>
@@ -175,6 +185,7 @@ void handleLine(const char* s) {
   <section id="Joystick ↔ 2*LED · p5.js + WebSerial">
     <h2>WebSerial</h2>
     <a href="http://127.0.0.1:5500/index6.html">Click here</a>
+    <a href="/Users/sihengli/Code/Li-1006.github.io/index6.html">webdesign</a>
     <pre><code>
   // Canvas Size
   let cw=520, ch=340;
