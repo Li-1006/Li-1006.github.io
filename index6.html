@@ -78,7 +78,7 @@
 
     // Click the "Connect" button to connect the Arduino.
     connectBtn.onclick = () => {
-      if (port) return;  // 已连接则忽略
+      if (port) return;  // Ignore if already connected
       navigator.serial.requestPort().then(p => {
         port = p;
         return port.open({ baudRate: 115200 });

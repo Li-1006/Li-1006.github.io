@@ -184,8 +184,7 @@ void handleLine(const char* s) {
   <hr />
   <section id="Joystick ↔ 2*LED · p5.js + WebSerial">
     <h2>WebSerial</h2>
-    <a href="http://127.0.0.1:5500/index6.html">Click here</a>
-    <a href="/Users/sihengli/Code/Li-1006.github.io/index6.html">webdesign</a>
+    <a href="https://li-1006.github.io/index6.html">webdesign</a>
     <pre><code>
   // Canvas Size
   let cw=520, ch=340;
@@ -219,7 +218,7 @@ void handleLine(const char* s) {
 
     // Click the "Connect" button to connect the Arduino.
     connectBtn.onclick = () => {
-      if (port) return;  // 已连接则忽略
+      if (port) return;  // Ignore if already connected
       navigator.serial.requestPort().then(p => {
         port = p;
         return port.open({ baudRate: 115200 });
