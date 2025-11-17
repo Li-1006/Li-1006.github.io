@@ -17,7 +17,6 @@
 </head>
 <body>
   <h1>Joystick ↔ 2×LED · p5.js + WebSerial</h1>
-  <p>Chrome/Edge 打开本页 → <b>Connect</b> → 摇杆移动/按键；画布内移动鼠标控制两路 LED。</p>
 
   <div class="row">
     <div class="panel">
@@ -38,8 +37,8 @@
 
       <div id="telemetry" class="mono" style="margin-top:8px">ax:- ay:- btn:-</div>
       <p class="mono" style="margin-top:8px">
-        画布内：鼠标<span> X→LED1</span>，<span>Y→LED2</span>；<br>
-        键盘：<b>1..5</b> 控 LED1（0/64/128/192/255），<b>Q..T</b> 控 LED2。
+        mouse<span> X→LED1</span>, <span>Y→LED2</span>;<br>
+        keyboard: <b>1..5</b> control LED1(0/64/128/192/255), <b>Q..T</b> control LED2.
       </p>
     </div>
 
@@ -47,19 +46,19 @@
   </div>
 
 <script>
-  // —— 画布尺寸
+  // Canvas Size
   let cw=520, ch=340;
-  // —— 摇杆数据（Arduino→网页）
+  // Joystick data (Arduino → Webpage)
   let ax=512, ay=512, btn=1;
-  // —— LED 当前值（网页→Arduino）
+  // LED current value (webpage → Arduino)
   let led1=0, led2=0;
 
-  // —— WebSerial 状态
+  // WebSerial status
   let port=null, reader=null, writer=null;
   const enc=new TextEncoder(), dec=new TextDecoder();
   let rxBuf="";
 
-  // —— 绑定 UI 与串口按钮
+  // Bind UI and serial port button
   window.addEventListener('DOMContentLoaded', ()=>{
     const connectBtn=document.getElementById('connectBtn');
     const disconnectBtn=document.getElementById('disconnectBtn');
@@ -69,105 +68,170 @@
     const v1=document.getElementById('v1');
     const v2=document.getElementById('v2');
 
-    connectBtn.onclick=async ()=>{
-      try{
-        port = await navigator.serial.requestPort();
-        await port.open({baudRate:115200});
-        reader = port.readable.getReader();
-        writer = port.writable.getWriter();
-        statusEl.textContent='Connected';
-        connectBtn.disabled=true; disconnectBtn.disabled=false;
-        readLoop();
-        sendL1(led1); sendL2(led2);     // 同步初值
-      }catch(e){ statusEl.textContent='Error: '+e.message; }
+    // 检查浏览器是否支持 Web Serial
+    if (!("serial" in navigator)) {
+      statusEl.textContent = "Web Serial not supported.";
+      connectBtn.disabled = true;
+      disconnectBtn.disabled = true;
+      return;
+    }
+
+    // 点击“Connect”按钮连接 Arduino
+    connectBtn.onclick = () => {
+      if (port) return;  // 已连接则忽略
+      navigator.serial.requestPort().then(p => {
+        port = p;
+        return port.open({ baudRate: 115200 });
+      }).then(() => {
+        if (port && port.readable && port.writable) {
+          reader = port.readable.getReader();
+          writer = port.writable.getWriter();
+          statusEl.textContent = "Connected";
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+          readLoop();
+          sendL1(led1);
+          sendL2(led2);
+        }
+      });
     };
 
-    disconnectBtn.onclick=async ()=>{
-      try{ if(reader){ await reader.cancel(); reader.releaseLock(); } }catch(e){}
-      try{ if(writer){ writer.releaseLock(); } }catch(e){}
-      try{ if(port){ await port.close(); } }catch(e){}
-      port=reader=writer=null;
-      connectBtn.disabled=false; disconnectBtn.disabled=true;
-      statusEl.textContent='Not connected';
+    // 点击“Disconnect”按钮断开连接
+    disconnectBtn.onclick = () => {
+      if (reader) {
+        reader.cancel().then(() => { reader.releaseLock(); reader = null; });
+      }
+      if (writer) {
+        writer.releaseLock();
+        writer = null;
+      }
+      if (port) {
+        port.close().then(() => {
+          port = null;
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          statusEl.textContent = "Not connected";
+        });
+      }
     };
 
-    // —— 滑条改变 → 发送 PWM
-    s1.oninput=()=>{ led1=+s1.value; v1.textContent=led1; writer&&sendL1(led1); };
-    s2.oninput=()=>{ led2=+s2.value; v2.textContent=led2; writer&&sendL2(led2); };
+    // Slider change → Send PWM
+    s1.oninput = () => {
+      led1 = +s1.value;
+      v1.textContent = led1;
+      if (writer) sendL1(led1);
+    };
+    s2.oninput = () => {
+      led2 = +s2.value;
+      v2.textContent = led2;
+      if (writer) sendL2(led2);
+    };
   });
 
-  // —— 串口读循环：解析 "ax,ay,btn\n"
-  async function readLoop(){
-    const tel=document.getElementById('telemetry');
-    while(reader){
-      const {value, done}=await reader.read();
-      if(done) break;
-      if(value){
-        rxBuf += dec.decode(value);
-        let i;
-        while((i=rxBuf.indexOf('\n'))>=0){
-          const line=rxBuf.slice(0,i).trim(); rxBuf=rxBuf.slice(i+1);
-          const p=line.split(',');
-          if(p.length===3){
-            const pax=parseInt(p[0]), pay=parseInt(p[1]), pbtn=parseInt(p[2]);
-            if(Number.isInteger(pax)&&Number.isInteger(pay)&&Number.isInteger(pbtn)){
-              ax=pax; ay=pay; btn=pbtn;
-              tel.textContent=`ax:${ax} ay:${ay} btn:${btn}`;
-            }
+  // Serial port read loop: Parsing "ax,ay,btn\n"
+  async function readLoop() {
+    const tel = document.getElementById("telemetry");
+    while (reader) {
+      const r = await reader.read();
+      if (!r || r.done) break;
+      if (!r.value) continue;
+      rxBuf += dec.decode(r.value);
+
+      // A line of data is parsed whenever a newline character is encountered.
+      let i;
+      while ((i = rxBuf.indexOf("\n")) >= 0) {
+        const line = rxBuf.slice(0, i).trim();
+        rxBuf = rxBuf.slice(i + 1);
+        const p = line.split(",");
+        if (p.length === 3) {
+          const pax = parseInt(p[0]);
+          const pay = parseInt(p[1]);
+          const pbtn = parseInt(p[2]);
+          if (!isNaN(pax) && !isNaN(pay) && !isNaN(pbtn)) {
+            ax = pax; ay = pay; btn = pbtn;
+            tel.textContent = `ax:${ax} ay:${ay} btn:${btn}`;
           }
         }
       }
     }
   }
-
-  // —— 发送两路 LED 指令
-  function sendL1(v){ writer&&writer.write(enc.encode(`L1:${clamp(v)}\n`)); }
-  function sendL2(v){ writer&&writer.write(enc.encode(`L2:${clamp(v)}\n`)); }
-  function clamp(v){ v|=0; if(v<0)v=0; if(v>255)v=255; return v; }
-
-  // —— p5：画布与交互
-  function setup(){
-    const cnv=createCanvas(cw,ch);
-    cnv.parent('canvas-wrap');
-    noStroke();
-    textSize(13);
+  // Send commands to two LEDs
+  function sendL1(v) {
+    if (writer) writer.write(enc.encode(`L1:${clamp(v)}\n`));
+  }
+  function sendL2(v) {
+    if (writer) writer.write(enc.encode(`L2:${clamp(v)}\n`));
+  }
+  function clamp(v) {
+    v |= 0;
+    if (v < 0) v = 0;
+    if (v > 255) v = 255;
+    return v;
   }
 
+  // p5：Canvas and Interaction
+  function setup() {
+    const cnv = createCanvas(cw, ch);
+    cnv.parent("canvas-wrap");
+    noStroke();
+    textSize(13);
+  } 
+
   function draw(){
-    // 按钮按下时背景更亮
+    // The background brightens when the button is pressed.
     background(btn===0 ? 248 : 235);
 
-    // 参考网格
+    // Reference grid
     stroke(220);
     for(let x=0;x<=cw;x+=40) line(x,0,x,ch);
     for(let y=0;y<=ch;y+=40) line(0,y,cw,y);
     noStroke();
 
-    // 把摇杆 (0..1023) 映射到像素
-    const px = map(ax,0,1023,0,cw);
-    const py = map(ay,0,1023,ch,0);
+    // Map the joystick (0..1023) to pixels
+    const px = map(ay,0,1023,0,cw);
+    const py = map(ax,0,1023,ch,0);
     fill(80,140,255);
     circle(px,py,18);
 
     fill(0);
     text('MouseX→LED1  MouseY→LED2  Keys(1..5)→LED1  Keys(Q..T)→LED2',10,18);
 
-    // —— 画布内移动鼠标 → 两路 LED
-    if(mouseX>=0&&mouseX<=cw&&mouseY>=0&&mouseY<=ch&&writer){
-      const t1=Math.round(map(mouseX,0,cw,0,255));
-      const t2=Math.round(map(mouseY,0,ch,0,255));
-      if(t1!==led1){ led1=t1; document.getElementById('led1').value=led1; document.getElementById('v1').textContent=led1; sendL1(led1); }
-      if(t2!==led2){ led2=t2; document.getElementById('led2').value=led2; document.getElementById('v2').textContent=led2; sendL2(led2); }
+    // Move the mouse within the canvas → Two LEDs
+    if (mouseX >= 0 && mouseX <= cw && mouseY >= 0 && mouseY <= ch && writer) {
+      const t1 = Math.round(map(mouseX, 0, cw, 0, 255));
+      const t2 = Math.round(map(mouseY, 0, ch, 0, 255));
+      if (t1 !== led1) {
+        led1 = t1;
+        const s1 = document.getElementById("led1"), v1 = document.getElementById("v1");
+        s1.value = led1; v1.textContent = led1; sendL1(led1);
+      }
+      if (t2 !== led2) {
+        led2 = t2;
+        const s2 = document.getElementById("led2"), v2 = document.getElementById("v2");
+        s2.value = led2; v2.textContent = led2; sendL2(led2);
+      }
     }
   }
+  // Keyboard presets (LED1: 1..5; LED2: Q..T)
+  function keyPressed() {
+    if (!writer) return;
 
-  // —— 键盘预设（LED1：1..5；LED2：Q..T）
-  function keyPressed(){
-    if(!writer) return;
-    const m1={'1':0,'2':64,'3':128,'4':192,'5':255};
-    const m2={'q':0,'w':64,'e':128,'r':192,'t':255,'Q':0,'W':64,'E':128,'R':192,'T':255};
-    if(m1[key]!==undefined){ led1=m1[key]; document.getElementById('led1').value=led1; document.getElementById('v1').textContent=led1; sendL1(led1); }
-    if(m2[key]!==undefined){ led2=m2[key]; document.getElementById('led2').value=led2; document.getElementById('v2').textContent=led2; sendL2(led2); }
+    const m1 = { "1": 0, "2": 64, "3": 128, "4": 192, "5": 255 };
+    const m2 = { "q": 0, "w": 64, "e": 128, "r": 192, "t": 255,
+                "Q": 0, "W": 64, "E": 128, "R": 192, "T": 255 };
+
+    if (m1[key] !== undefined) {
+      led1 = m1[key];
+      document.getElementById("led1").value = led1;
+      document.getElementById("v1").textContent = led1;
+      sendL1(led1);
+    }
+    if (m2[key] !== undefined) {
+      led2 = m2[key];
+      document.getElementById("led2").value = led2;
+      document.getElementById("v2").textContent = led2;
+      sendL2(led2);
+    }
   }
 </script>
 </body>
