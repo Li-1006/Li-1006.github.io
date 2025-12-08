@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assignment 6: Talking to the Web</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+    h1 { font-size: 26px; }
+    pre { background: #f4f4f4; padding: 8px; border-radius: 4px; overflow:auto; }
+    ul { padding-left: 20px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; justify-content:center; }
+    .assignment { text-align: center; border: 1px solid #ccc; padding: 10px; width: 480px; }
+    .assignment img { width: 100%; max-width: 450px; border-radius: 6px; }
+    hr { margin-top: 40px; }
+    table.basic td, table.basic th { border:1px solid #ccc; padding:6px 8px; }
+    table.basic { border-collapse: collapse; width: 100%; }
+    .card { border:1px solid #ccc; padding:12px; border-radius:6px; }
+    figcaption { font-size: 0.95em; color:#444; margin-top:8px; }
+    .small { color:#666; font-size: 0.95em; }
+    /* control Additional Questions image size */
+    .small-img img { max-width: 300px; width:100%; border-radius:6px; }
+
+    figure figcaption {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Siheng Li's Final Project: Smart Night Light Page</h1>
+
+  <h2 style="color: #333; margin-bottom: 10px;">Project Interaction Overview</h2>
+  <p><strong>Problem</strong></p>
+
+  <p>
+    <strong>Smart Night Light</strong> is designed to create a seamless lighting experience that adapts 
+    naturally to daily study and rest routines.
+    Using a light sensor (LDR) and a temperature sensor (NTC), the lamp detects environmental 
+    brightness and warmth, automatically shifting its color temperature to match the user's 
+    needs: cooler tones for focus in brighter environments, and softer warm tones when the 
+    surroundings grow dim.
+  </p>
+  <p>
+    A single-button interaction keeps the experience simple: short press to resample the environment, 
+    long press to enter a warm breathing-light Relax Mode, and double-click to turn the lamp off instantly.
+    Through adaptive sensing and minimal interaction, the design delivers a calm, intuitive lighting 
+    system that supports both productivity and relaxation.
+  </p>
+
+  <section class="solution">
+    <h2>Solution</h2>
+    <p>
+      <strong>Smart Night Light</strong> offers an adaptive and emotionally calming lighting
+      experience designed for safe and comfortable nighttime use.
+    </p>
+    <p>
+      Through ambient sensors, the light automatically adjusts its brightness and warmth
+      based on the environment—becoming softer and warmer when the room is dark, and
+      brighter only when necessary.
+    </p>
+    <p>
+      A single-button interaction allows users to resample the environment, activate a warm
+      breathing Relax Mode, or quickly turn the light off without disrupting their night routine.
+    </p>
+    <p>
+      This creates a low-glare, low-effort lighting solution that supports comfort, reduces
+      nighttime anxiety, and helps users move safely in the dark.
+    </p>
+  </section>
+
+  <div class="video-container">
+    <iframe 
+      width="560" 
+      height="315" 
+      src="https://www.youtube.com/embed/N-J1VakaUc8" 
+      title="Smart Night Light Demo Video"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <h2>Technical Implementation</h2>
+  <div class="card">
+    <p><strong>Schematic Explanation:</strong></p>
+    <p>
+      Arduino Uno - controls all sensing and lighting logic
+      LDR - detects ambient brightness
+      Thermistor - captures temperature changes for subtle color adjustments
+      RGB LED - main light output 
+      220Ω Resistors - limit current for each LED color channel
+      10kΩ Resistor *2 - voltage divider for LDR & NTC
+      Button - supports short press / long press / double-click
+      Breadboard & Jumper Wires - wiring the prototype
+    </p>
+  </div>
+
+  <section class="how-it-works">
+   <h2>How It Works</h2>
+
+    <p>
+      The Arduino continuously collects data from its sensors and uses this information
+      to generate adaptive nighttime lighting behavior.
+    </p>
+
+    <p>
+      A photoresistor (LDR) connected to <strong>A0</strong> measures room brightness,
+      allowing the system to determine whether the environment is dark, dim, or bright.
+    </p>
+
+    <p>
+      Meanwhile, an NTC thermistor on <strong>A1</strong> provides relative temperature
+      information, helping to fine-tune the light's color temperature, making it slightly
+      cooler or warmer depending on the surrounding environment.
+    </p>
+
+    <p>
+      A single touch button connected to <strong>D2</strong> manages all user interactions.
+    </p>
+
+    <ul>
+      <li><strong>Short press</strong> → resamples the environment and updates the LED output</li>
+      <li><strong>Long press</strong> → activates Relaxation Mode, a warm breathing-light effect</li>
+      <li><strong>Double-click</strong> → quickly turns off the nightlight with no visual disruption</li>
+    </ul>
+
+    <p>
+      Finally, the Arduino uses its PWM outputs (<strong>D3, D5, D6</strong>) to drive the RGB LED.
+      By precisely adjusting the duty cycle of each color channel, the system produces smooth,
+      gradual transitions between warm and cool tones.
+    </p>
+
+    <p>
+      This ensures the nightlight feels soft, natural, and comfortable—never abrupt or glaring.
+    </p>
+  </section>
+
+  <div class="grid">
+    <div class="assignment">
+      <h2>Schematic</h2>
+      <figure>
+        <img src="final_sche.jpg"/>
+        <figcaption>Final schematic</figcaption>
+      </figure>
+    </div>
+
+    <div class="assignment">
+      <h2>Circuit</h2>
+      <figure>
+        <img src="final_circuit.jpg" />
+        <figcaption>Final circuit</figcaption>
+      </figure>
+    </div>
+
+    <div class="assignment">
+      <h2>Circuit Operation</h2>
+      <figure>
+
+
+      </figure>
+    </div>
+  </div>
+
+  <hr />
+
+  <section id="firmware_Arduino">
+    <h2>Arduino</h2>
+    <pre><code>
+
+// Smart Study Light_Final Version with DOUBLE-CLICK OFF
+const int PIN_LDR = A0;
+const int PIN_NTC = A1;
+const int PIN_BUTTON = 2;
+const int PIN_R = 3;
+const int PIN_G = 5;
+const int PIN_B = 6;
+
+// Button
+unsigned long pressStart = 0;
+unsigned long lastPressTime = 0;
+bool buttonPressed = false;
+bool longPressHandled = false;
+
+unsigned long clickInterval = 400;   // double-click window
+int clickCount = 0;
+
+const unsigned long LONG_PRESS_MS = 800;
+
+// Modes
+bool relaxMode = false;
+bool needResample = true;
+bool lightOff = false;   // the lights off
+
+// Breathing
+float breathPhase = 0.0;
+float breathSpeed = 0.02;
+int baseR = 255, baseG = 120, baseB = 40;
+
+// Colors
+int curR = 0, curG = 0, curB = 0;
+int targetR = 0, targetG = 0, targetB = 0;
+
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+  pinMode(PIN_R, OUTPUT);
+  pinMode(PIN_G, OUTPUT);
+  pinMode(PIN_B, OUTPUT);
+
+  fadeToColor(255, 180, 120);
+}
+
+
+
+void loop() {
+
+  handleButton();
+
+  // No mode is activated when the lights are off.
+  if (lightOff) {
+    setColor(0,0,0);
+    return;
+  }
+
+  if (relaxMode) {
+    runRelaxBreathing();
+  } else {
+    if (needResample) {
+      updateColorFromSensors();
+      needResample = false;
+    }
+    fadeStep();
+  }
+
+  delay(15);
+}
+
+
+
+// BUTTON HANDLING
+void handleButton() {
+  bool isPressed = (digitalRead(PIN_BUTTON) == LOW);
+
+  // Pressing the button instantly
+  if (isPressed && !buttonPressed) {
+    buttonPressed = true;
+    longPressHandled = false;
+    pressStart = millis();
+
+    // DOUBLE CLICK DETECTION
+    if (millis() - lastPressTime < clickInterval) {
+      clickCount++;
+    } else {
+      clickCount = 1;
+    }
+
+    lastPressTime = millis();
+  }
+
+  // Release the moment
+  if (!isPressed && buttonPressed) {
+    unsigned long pressDuration = millis() - pressStart;
+    buttonPressed = false;
+
+    // DOUBLE CLICK: turn OFF
+    if (clickCount == 2 && pressDuration < LONG_PRESS_MS) {
+      clickCount = 0;
+      turnLightOff();
+      Serial.println("DOUBLE CLICK → LIGHT OFF");
+      return;
+    }
+
+    // SHORT PRESS
+    if (!longPressHandled && pressDuration < LONG_PRESS_MS) {
+      if (lightOff) {
+        lightOff = false;
+      }
+      needResample = true;
+      Serial.println("SHORT press → sample sensors");
+    }
+  }
+
+  // LONG PRESS
+  if (buttonPressed &&
+      !longPressHandled &&
+      (millis() - pressStart > LONG_PRESS_MS)) {
+
+    longPressHandled = true;
+    relaxMode = !relaxMode;
+    Serial.print("LONG press → Relax Mode = ");
+    Serial.println(relaxMode ? "ON" : "OFF");
+  }
+}
+
+// LIGHT OFF FUNCTION
+void turnLightOff() {
+  lightOff = true;
+  setColor(0,0,0);
+}
+
+// SENSOR → COLOR MAPPING  (Main Logic)
+void updateColorFromSensors() {
+  int ldrVal = analogRead(PIN_LDR);
+  int ntcVal = analogRead(PIN_NTC);
+
+  float brightness = map(ldrVal, 300, 800, 0, 100);
+  brightness = constrain(brightness, 0, 100);
+
+  float tempLevel = map(ntcVal, 300, 700, 0, 100);
+  tempLevel = constrain(tempLevel, 0, 100);
+
+  float coolFactor = (brightness * 0.6 + tempLevel * 0.4) / 100.0;
+
+  targetR = 200 - coolFactor * 120;
+  targetG = 120 - coolFactor * 60;
+  targetB = 40  + coolFactor * 120;
+
+  targetR = constrain(targetR, 0, 255);
+  targetG = constrain(targetG, 0, 255);
+  targetB = constrain(targetB, 0, 255);
+}
+
+// RELAX MODE (Breathing Animation)
+void runRelaxBreathing() {
+  breathPhase += breathSpeed;
+  if (breathPhase > 6.28) breathPhase = 0;
+
+  float breath = (sin(breathPhase) + 1.0) / 2.0;
+
+  int R = baseR * (0.2 + breath * 0.6);
+  int G = baseG * (0.2 + breath * 0.6);
+  int B = baseB * (0.2 + breath * 0.6);
+
+  setColor(R, G, B);
+}
+
+//  COLOR OUTPUT FUNCTIONS
+void fadeToColor(int r, int g, int b) {
+  targetR = r;
+  targetG = g;
+  targetB = b;
+}
+
+void fadeStep() {
+  curR = approach(curR, targetR, 2);
+  curG = approach(curG, targetG, 2);
+  curB = approach(curB, targetB, 2);
+
+  setColor(curR, curG, curB);
+}
+
+int approach(int current, int target, int step) {
+  if (current < target) return min(current + step, target);
+  if (current > target) return max(current - step, target);
+  return current;
+}
+
+void setColor(int r, int g, int b) {
+  analogWrite(PIN_R, r);
+  analogWrite(PIN_G, g);
+  analogWrite(PIN_B, b);
+}
+    </code></pre>
+  </section>
+
+</body>
+</html>
