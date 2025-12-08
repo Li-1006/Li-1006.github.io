@@ -148,16 +148,125 @@
   <h2>Technical Implementation</h2>
   <div class="card">
     <p><strong>Schematic Explanation:</strong></p>
-    <p>
-      Arduino Uno - controls all sensing and lighting logic
-      LDR - detects ambient brightness
-      Thermistor - captures temperature changes for subtle color adjustments
-      RGB LED - main light output 
-      220Ω Resistors - limit current for each LED color channel
-      10kΩ Resistor *2 - voltage divider for LDR & NTC
-      Button - supports short press / long press / double-click
-      Breadboard & Jumper Wires - wiring the prototype
-    </p>
+    <ol>
+      <li>
+        <strong>Microcontroller</strong>
+        <ul>
+          <li>Use <strong>Arduino Uno</strong> as the main control board.</li>
+          <li>
+            It is responsible for reading sensor data, executing mode logic, and controlling the brightness and color of RGB LEDs through PWM.
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>RGB LED Output</strong>
+        <ul>
+          <li>Use one <strong>Common cathode RGB LED</strong>.</li>
+          <li>The three color channels are connected to the Arduino's PWM pins respectively:
+            <ul>
+              <li>R → D3</li>
+              <li>G → D5</li>
+              <li>B → D6</li>
+            </ul>
+          </li>
+          <li>Each channel is connected in series approximately <strong>220Ω resistance</strong>.</li>
+          <li>Through <code>analogWrite()</code> output PWM(0-255)，实现亮度与颜色混合。</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>LDR Light Sensor</strong>
+        <ul>
+          <li>LDR and a <strong>10kΩ resistance</strong> forming a voltage divider circuit:
+            <br>5V → LDR → A0 → 10kΩ → GND
+          </li>
+          <li>A0 reads analog values from 0 to 1023 to estimate brightness.</li>
+          <li>Use <code>map()</code> and <code>constrain()</code> mapped to brightness levels of 0-100.</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>NTC Thermistor (Thermistors, assisting in environmental sensing)</strong>
+        <ul>
+          <li>Similarly, a 10kΩ resistor is used to form a voltage divider circuit, which is connected to A1.</li>
+          <li>A1 readings are mapped to 0–100 <strong>tempLevel</strong>(Relative temperature).</li>
+          <li>Used for adjusting warm and cool colors, not for absolute temperature measurement.</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>Ambient Mapping Logic</strong>
+        <p>The program combines brightness and tempLevel into a single color temperature factor:</p>
+
+        <pre><code>float coolFactor = (brightness * 0.6 + tempLevel * 0.4) / 100.0;</code></pre>
+
+        <ul>
+          <li>Bright ambient light / high temperature → cool factor ↑ → cool lighting</li>
+          <li>Dark/Low Temperature Environment → Cool Factor ↓ → Warm Lighting</li>
+        </ul>
+
+        <p>RGB values ​​are automatically calculated based on coolFactor:</p>
+        <ul>
+          <li>Warm colors → More red than blue</li>
+          <li>Cool colors → More blue, less red</li>
+          <li>Brightness is scaled overall based on brightness.</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>Button Input & Interaction</strong>
+        <ul>
+          <li>Button connection method: D2 ↔ Button ↔ GND, using the Arduino's internal pull-up resistor.</li>
+          <li>Through <code>millis()</code> calculating the duration of pressure to determine the behavior:</li>
+          <ul>
+            <li><strong>Shortpress</strong> → Resample the sensor (update the lights)</li>
+            <li><strong>Longpress</strong> → Enter/exit Relax Breathing Mode</li>
+            <li><strong>Double click</strong> → Turn off the lights (lightOff = true)</li>
+          </ul>
+        </ul>
+      </li>
+
+      <li>
+        <strong>Mode Handling</strong>
+        <p>Three key state variables control the behavior of the light:</p>
+        <ul>
+          <li><code>relaxMode</code>: the breathing is light on or off.</li>
+          <li><code>lightOff</code>: the light is turned off or not.</li>
+          <li><code>needResample</code>: the target color is updated or not.</li>
+        </ul>
+
+        <p>Core logic:</p>
+        <pre><code>
+  if (lightOff)  → light off  
+  else if (relaxMode) → breathing mode  
+  else {  
+      if (needResample) Update color  
+      fadeStep();        Smooth transition  
+  }
+        </code></pre>
+      </li>
+
+      <li>
+        <strong>Smooth Fading</strong>
+        <p>The lights won't change abruptly; instead, they will gradually change using the `approach()` function.</p>
+
+        <pre><code>curR = approach(curR, targetR, 2);</code></pre>
+
+        <p>This type of light is soft and not glaring, making it more suitable as a night light.</p>
+      </li>
+
+      <li>
+        <strong>Relax Breathing Mode</strong>
+        <p>Using sine waves to generate rhythmic brightness variations:</p>
+
+        <pre><code>float breath = (sin(breathPhase) + 1) / 2;</code></pre>
+
+        <p>Based on a warm color scheme, the brightness fluctuates according to the rhythm of "inhalation-exhalation" 
+          to create a sleep-inducing atmosphere.
+        </p>
+      </li>
+    </ol>
   </div>
 
   <section class="how-it-works">
@@ -214,14 +323,6 @@
       <figure>
         <img src="final_circuit.jpg" />
         <figcaption>Final circuit</figcaption>
-      </figure>
-    </div>
-
-    <div class="assignment">
-      <h2>Circuit Operation</h2>
-      <figure>
-
-
       </figure>
     </div>
   </div>
